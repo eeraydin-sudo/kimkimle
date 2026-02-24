@@ -164,12 +164,6 @@ class GameManager:
         if len(room.get_connected_players()) >= MAX_PLAYERS:
             raise ValueError("Oda dolu")
         
-        # Check for same IP (prevent multiple tabs from same IP)
-        if client_ip in self.ip_connections:
-            for pid in self.ip_connections[client_ip]:
-                if pid in room.players:
-                    raise ValueError("Bu IP adresinden zaten odaya bağlısınız")
-        
         player_id = self._generate_player_id()
         player = Player(
             id=player_id,
