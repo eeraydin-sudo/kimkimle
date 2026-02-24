@@ -27,7 +27,7 @@ Bu belge **2–4 haftalık hızlı prototip / demo** hedefini kapsamaktadır.
 - Lobi kurma ve odaya katılma
 - Takma adla oturum açma
 - Klasik 6 soruluk oyun döngüsü + host'un özel soru ekleyebilmesi
-- 30 saniyelik cevap süresi sayacı
+- 35 saniyelik cevap süresi sayacı
 - Sunucu taraflı sanal kağıt kaydırma algoritması
 - Sıralı hikaye açılış ekranı
 - Bağlantı kopma yönetimi (30 sn yeniden bağlanma süresi)
@@ -60,7 +60,7 @@ Bir oyuncu "Oda Kur" seçeneğiyle lobi oluşturur; rastgele 4 karakterlik bir o
 
 ### 5.2 Tur Akışı
 1. Host "Oyunu Başlat" düğmesine basar.
-2. Her turda tüm oyuncuların ekranında aynı soru belirir ve **30 saniyelik geri sayım** başlar.
+2. Her turda tüm oyuncuların ekranında aynı soru belirir ve **35 saniyelik geri sayım** başlar.
 3. Süre dolmadan önce cevabını onaylayan oyuncular bekleme ekranına geçer; diğerlerinin süresi dolunca cevapları otomatik olarak (boş veya yazılan metin) gönderilir.
 4. Tüm cevaplar alındığında sunucu bir sonraki soruya geçer.
 5. Tüm sorular tamamlandığında Büyük Açılış ekranı başlar.
@@ -99,7 +99,7 @@ Oyun bitişinde tüm oyunculara iki seçenek sunulur:
 [Lobi Ekranı]
     └── Host "Başlat" → [Soru Ekranı]
 
-[Soru Ekranı] (30 sn sayaç)
+[Soru Ekranı] (35 sn sayaç)
     └── Cevap gönder → [Bekleme] → Sonraki soru → ... → [Büyük Açılış]
 
 [Büyük Açılış]
@@ -141,22 +141,71 @@ Oyun bitişinde tüm oyunculara iki seçenek sunulur:
 
 ## 8. Teknik Altyapı Mimarisi
 
-### 8.1 Backend
-Gerçek zamanlı çok oyunculu etkileşim için **WebSocket** teknolojisi zorunludur.
+### 8.1 Teknoloji Seçimleri (Kesinleşmiş)
 
-- **Önerilen:** `FastAPI + WebSockets` (asenkron yapısı performans avantajı sağlar)
-- **Alternatif:** `Flask-SocketIO` (daha hızlı prototip için)
+| Katman | Teknoloji | Gerekçe |
+|--------|-----------|---------|
+| Backend | FastAPI + WebSockets | Native async WebSocket desteği, yüksek performans |
+| Frontend | Vue.js 3 (Composition API) | Reaktif UI, düşük öğrenme eğrisi, Vercel uyumu |
+| State Yönetimi | Sunucu Belleği (Python dict) | Prototip için yeterli, sıfır kurulum |
+| Backend Deploy | Render.com | Ücretsiz tier, kalıcı WebSocket desteği |
+| Frontend Deploy | Vercel | Otomatik deploy, CDN, HTTPS |
 
-### 8.2 Frontend
-- HTML / CSS / JavaScript (veya hafif bir framework: Vue.js / Svelte)
-- Mobil öncelikli duyarlı (responsive) tasarım
-- Sayaç, bekleme animasyonları ve hikaye açılışı için CSS animasyonları
+### 8.2 Backend — FastAPI + WebSockets
 
-### 8.3 Veri ve Durum Yönetimi
-Parti oyunlarında oyun bittikten sonra verilere nadiren ihtiyaç duyulur. Bu nedenle geleneksel bir SQL veritabanı yerine:
+```
+backend/
+├── main.py           # FastAPI uygulaması, WebSocket endpoint'leri
+├── game_manager.py   # Oda ve oyun state yönetimi (Python dict)
+├── models.py         # Pydantic veri modelleri
+├── requirements.txt  # fastapi, uvicorn, websockets
+└── render.yaml       # Render.com deploy konfigürasyonu
+```
 
-- **Birincil:** Sunucu belleğinde Python sözlükleri / nesneleri (prototip için yeterli)
-- **Üretim ortamı için:** `Redis` (hızlı in-memory yapısı, çoklu sunucu desteği)
+Render.com'da çalıştırma komutu:
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+### 8.3 Frontend — Vue.js 3
+
+```
+frontend/
+├── index.html
+├── package.json
+├── vite.config.js        # Vite bundler (Vue 3 önerilen)
+├── vercel.json           # Vercel deploy konfigürasyonu
+└── src/
+    ├── main.js
+    ├── App.vue
+    ├── socket.js         # WebSocket bağlantı yönetimi
+    └── components/
+        ├── HomeScreen.vue      # Giriş: Oda kur / Katıl
+        ├── LobbyScreen.vue     # Lobi: Oyuncu listesi, soru düzenleme
+        ├── QuestionScreen.vue  # Soru + 35sn sayaç
+        ├── WaitingScreen.vue   # Diğerleri yazıyor...
+        ├── RevealScreen.vue    # Büyük Açılış animasyonu
+        └── EndScreen.vue       # Tekrar Oyna / Çık
+```
+
+### 8.4 Veri ve Durum Yönetimi — Sunucu Belleği
+
+Tüm aktif oda verileri Python sözlüklerinde tutulur. Sunucu yeniden başlarsa aktif oyunlar sıfırlanır; prototip aşaması için bu kabul edilebilir. Üretime geçildiğinde Upstash Redis ile değiştirilebilir.
+
+```python
+# Sunucu belleğindeki veri yapısı örneği
+rooms = {
+    "A7B2": {
+        "host": "ali",
+        "players": ["ali", "ayse", "mehmet"],
+        "state": "lobby",          # lobby | playing | reveal | ended
+        "questions": [...],
+        "papers": { "ali": [], "ayse": [], "mehmet": [] },
+        "current_question_index": 0,
+        "answers_received": {}
+    }
+}
+```
 
 ---
 
@@ -190,12 +239,40 @@ Parti oyunlarında oyun bittikten sonra verilere nadiren ihtiyaç duyulur. Bu ne
 
 ---
 
-## 11. Sürüm Yol Haritası
+## 11. Deploy Mimarisi
+
+### Vercel (Frontend)
+`frontend/` klasörü Vercel'e bağlanır. Her `git push` sonrası otomatik deploy tetiklenir. `vercel.json` içinde Vue Router için fallback ayarı yapılır.
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+### Render.com (Backend)
+`backend/` klasörü Render.com'a bağlanır. `render.yaml` ile servis tanımlanır.
+
+```yaml
+services:
+  - type: web
+    name: kimkiminle-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+> ⚠️ **Soğuk Başlatma:** Render.com ücretsiz tier'da 15 dakika işlem olmadığında sunucu uyur. İlk bağlantı 30-40 saniye sürebilir. Bu prototip aşamasında kabul edilebilir; ücretli plana geçince çözülür.
+
+---
+
+## 12. Sürüm Yol Haritası
 
 ### v1.0 — MVP (2–4 Hafta)
-Bu belgede tanımlanan tüm özellikler.
+Bu belgede tanımlanan tüm özellikler. Stack: FastAPI + Vue.js 3 + Sunucu Belleği. Deploy: Vercel + Render.com.
 
 ### v2.0 — Gelecek (Kapsam Dışı)
+- Sunucu belleği → Upstash Redis geçişi (çoklu sunucu desteği)
 - Özel soru paketleri (18+, sinema temalı vb.)
 - Liderlik tablosu ve puanlama sistemi
 - Kullanıcı hesabı ve kayıt sistemi

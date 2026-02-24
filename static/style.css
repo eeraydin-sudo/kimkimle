@@ -1,0 +1,749 @@
+/* Kim Kiminle - Responsive CSS
+ * Game Design Document: game-design.md
+ * Platform: Mobile and Desktop equal priority
+ */
+
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --background: #0f172a;
+    --surface: #1e293b;
+    --surface-light: #334155;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-radius: 12px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--background);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+.screen.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Logo */
+.logo {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.logo h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo.small h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.tagline {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-top: 8px;
+}
+
+/* Info Text */
+.info-text {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 20px;
+}
+
+/* Cards */
+.card {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.card h3 {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--surface-light);
+    border-radius: 8px;
+    background: var(--background);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+input[type="text"]::placeholder {
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--surface-light);
+    color: var(--text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #475569;
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 2px solid var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1.1rem;
+}
+
+.btn-small {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 16px;
+}
+
+.btn-back:hover {
+    color: var(--text);
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hint {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+/* Lobby */
+.lobby-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.room-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.room-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.room-code {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 2px;
+}
+
+/* Player List */
+.player-list {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+.player-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--background);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.player-list li.disconnected {
+    opacity: 0.5;
+}
+
+.player-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.player-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.player-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--primary);
+    color: white;
+}
+
+.player-badge.reconnecting {
+    background: var(--warning);
+}
+
+/* Host Controls */
+.host-controls {
+    border-top: 1px solid var(--surface-light);
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.host-controls.hidden {
+    display: none;
+}
+
+.player-waiting {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 20px;
+}
+
+.player-waiting.hidden {
+    display: none;
+}
+
+/* Question List */
+.question-list {
+    list-style: none;
+    margin-bottom: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.question-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--background);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.question-list li.custom {
+    border-left: 3px solid var(--secondary);
+}
+
+.question-list .remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.question-list .remove-btn:hover {
+    opacity: 1;
+}
+
+.add-question {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.add-question input {
+    flex: 1;
+}
+
+/* Question Screen */
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.question-progress {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.timer {
+    width: 60px;
+    height: 60px;
+    background: var(--surface);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    border: 3px solid var(--primary);
+}
+
+.timer.warning {
+    border-color: var(--warning);
+    color: var(--warning);
+    animation: pulse 1s infinite;
+}
+
+.timer.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.question-card {
+    text-align: center;
+}
+
+.question-card h2 {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    color: var(--text);
+}
+
+/* Waiting Screen */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--surface-light);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.waiting-list {
+    list-style: none;
+    text-align: left;
+}
+
+.waiting-list li {
+    padding: 8px 12px;
+    background: var(--background);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Reveal Screen */
+#screen-reveal {
+    text-align: center;
+}
+
+#screen-reveal h2 {
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+}
+
+.stories-container {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    min-height: 200px;
+}
+
+.story {
+    animation: fadeIn 0.5s ease;
+}
+
+.story-header {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.story-text {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.story-part {
+    display: inline;
+}
+
+.story-part .highlight {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(16, 185, 129, 0.3));
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.story-author {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.reveal-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+#story-counter {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Finished Screen */
+.finished-card {
+    text-align: center;
+}
+
+.finished-card h2 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.finished-card p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+.finished-controls {
+    margin-bottom: 12px;
+}
+
+.finished-controls.hidden {
+    display: none;
+}
+
+/* Disconnected Screen */
+.reconnect-timer {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--warning);
+    margin-top: 16px;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+    max-width: 90%;
+    text-align: center;
+}
+
+.toast.hidden {
+    display: none;
+}
+
+.toast.error {
+    background: var(--danger);
+}
+
+.toast.success {
+    background: var(--secondary);
+}
+
+.toast.warning {
+    background: var(--warning);
+    color: #000;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Responsive - Mobile First */
+@media (max-width: 480px) {
+    .container {
+        padding: 16px;
+    }
+
+    .logo {
+        padding: 30px 0;
+    }
+
+    .logo h1 {
+        font-size: 2rem;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .question-card h2 {
+        font-size: 1.5rem;
+    }
+
+    .timer {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    .story-text {
+        font-size: 1rem;
+    }
+
+    .reveal-controls {
+        flex-wrap: wrap;
+    }
+}
+
+/* Tablet and above */
+@media (min-width: 481px) and (max-width: 768px) {
+    .container {
+        max-width: 500px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+    .container {
+        max-width: 520px;
+    }
+
+    .logo h1 {
+        font-size: 2.8rem;
+    }
+
+    .card {
+        padding: 28px;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface-light);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* Animation for story parts */
+.story-part {
+    animation: fadeInPart 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInPart {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+    background: var(--primary);
+    color: white;
+}
