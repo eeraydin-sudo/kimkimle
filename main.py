@@ -23,6 +23,14 @@ app = FastAPI(title="Kim Kiminle")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# ============== Health Check (for Render.com) ==============
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render.com deployment"""
+    return {"status": "healthy"}
+
+
 # ============== Constants (from GDD) ==============
 
 MIN_PLAYERS = 3
