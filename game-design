@@ -1,0 +1,23 @@
+# Web Tabanlı "Kim Kiminle" Oyun Tasarım Belgesi (GDD)
+
+## Oyunun Konsepti ve Amacı
+Klasik kağıt-kalem oyunu "Kim, Kiminle, Nerede, Ne Yapıyor?" eğlencesini, arkadaş gruplarının farklı yerlerden veya aynı odada kendi cihazlarından bağlanarak oynayabileceği, gerçek zamanlı ve çok oyunculu (multiplayer) bir web uygulamasına dönüştürmek.
+
+## Temel Mekanikler
+* **Lobi Sistemi:** Bir oyuncu "Oda Kur" seçeneğiyle bir lobi oluşturur ve rastgele bir oda kodu (örn: A7B2) üretilir. Diğer oyuncular "Odaya Katıl" diyerek bu kodla giriş yapar.
+* **Tur Akışı:** Oyun başladığında herkesin ekranında aynı anda sıradaki soru belirir. Tüm oyuncular cevaplarını yazıp onaylayana kadar bir sonraki aşamaya geçilmez.
+* **Dijital "Kağıt Katlama":** Gerçek hayattaki kağıdı yandakine devretme mantığı, sunucu tarafında veri kaydırma işlemiyle simüle edilir. Her oyuncunun cevabı, farklı bir "sanal kağıda" eklenerek oyuncular arasında gizlice dolaştırılır.
+* **Büyük Açılış (Sonuç Ekranı):** Tüm sorular (Kim, Kiminle, Nerede, Ne Yapıyor, Kim Görmüş, Ne Demiş) tamamlandığında, sunucu birleşen bu absürt hikayeleri tüm oyuncuların ekranına sırayla ve eğlenceli animasyonlarla yansıtır.
+
+## Teknik Altyapı Mimarisi
+* **Backend:** Gerçek zamanlı ve çok oyunculu etkileşim için WebSocket teknolojisi şarttır. Python tabanlı sağlam bir iskelet kurmak adına **Flask-SocketIO** veya asenkron yapısıyla öne çıkan **FastAPI + WebSockets** harika bir tercih olur.
+* **Frontend:** Temiz ve hızlı bir kullanıcı deneyimi için HTML/CSS ve JavaScript kullanılabilir. Mobil cihazlardan oynanacağı için arayüzün kesinlikle duyarlı (responsive) olması gerekir.
+* **Veri ve Durum Yönetimi (State Management):** Bu tarz parti oyunlarında oyun bitince verilere pek ihtiyaç duyulmaz. Bu yüzden geleneksel bir SQL veritabanı yerine, aktif oda durumlarını ve sanal kağıt verilerini sunucu belleğinde (Python sözlükleri/nesneleri) veya **Redis** gibi hızlı bir in-memory yapıda tutmak performansı artırır.
+
+## Sunucu Tarafı Veri Akışı (Sanallaştırma)
+Klasik oyunun dijitaldeki algoritması şu şekilde çalışır:
+
+1. Diyelim ki odada 4 oyuncu var: **Oyuncu 1, 2, 3 ve 4.** Sunucu, arkada 4 adet boş sanal kağıt (dizi veya liste) oluşturur.
+2. **"Kim?"** sorusunda herkes cevap yazar. Sunucu bu cevapları alır ve sırayla kağıtlara dağıtır. (Oyuncu 1'in cevabı -> Kağıt 1'e)
+3. **"Kiminle?"** sorusu sorulur. Yeni cevaplar geldiğinde sunucu bunları bir kaydırarak ekler. (Oyuncu 1'in cevabı -> Kağıt 2'ye, Oyuncu 4'ün cevabı -> Kağıt 1'e)
+4. Bu döngü sorular bitene kadar devam eder. Böylece hiçbir oyuncu kendi başlattığı cümlenin sonunu bilemez.
