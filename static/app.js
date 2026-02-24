@@ -27,7 +27,9 @@ const state = {
     currentStoryIndex: 0,
     ws: null,
     reconnectAttempts: 0,
-    maxReconnectAttempts: 5
+    maxReconnectAttempts: 5,
+    hasAnswered: false,
+    submittedAnswer: ''
 };
 
 // ============== DOM Elements ==============
@@ -269,8 +271,13 @@ function handleGameStarted(data) {
     state.questions = data.questions;
     state.totalQuestions = data.questions.length;
     state.currentQuestionIndex = 0;
+    state.hasAnswered = false;
+    state.submittedAnswer = '';
 
     elements.displays.totalQuestions.textContent = state.totalQuestions;
+    elements.inputs.answer.disabled = false;
+    elements.inputs.answer.classList.remove('submitted');
+    elements.buttons.submitAnswer.disabled = false;
 
     showScreen('question');
 }
@@ -278,10 +285,15 @@ function handleGameStarted(data) {
 function handleNextQuestion(data) {
     state.currentQuestionIndex = data.question_index;
     state.timer = data.remaining_seconds || ANSWER_TIMER_SECONDS;
+    state.hasAnswered = false;
+    state.submittedAnswer = '';
 
     elements.displays.questionText.textContent = data.question;
     elements.displays.currentQuestionNum.textContent = state.currentQuestionIndex + 1;
     elements.inputs.answer.value = '';
+    elements.inputs.answer.disabled = false;
+    elements.inputs.answer.classList.remove('submitted');
+    elements.buttons.submitAnswer.disabled = false;
     elements.inputs.answer.focus();
 
     updateTimerDisplay();
@@ -622,14 +634,27 @@ elements.buttons.startGame.addEventListener('click', () => {
 
 // Submit Answer
 elements.buttons.submitAnswer.addEventListener('click', () => {
+    if (state.hasAnswered) return;
+
     const answer = elements.inputs.answer.value.trim();
+    if (!answer) return;
+
     sendEvent('submit_answer', { answer });
-    elements.inputs.answer.value = '';
+    state.hasAnswered = true;
+    state.submittedAnswer = answer;
+
+    // Show submitted answer in italic, disable input
+    elements.inputs.answer.value = answer;
+    elements.inputs.answer.disabled = true;
+    elements.inputs.answer.classList.add('submitted');
+    elements.buttons.submitAnswer.disabled = true;
+
+    showToast('Cevabınız gönderildi!', 'success');
 });
 
 // Enter key for answer submission
 elements.inputs.answer.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !state.hasAnswered) {
         elements.buttons.submitAnswer.click();
     }
 });
