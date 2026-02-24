@@ -459,10 +459,21 @@ function renderStories() {
 
         let partsHtml = '';
         story.parts.forEach((part, partIndex) => {
+            // Add suffix based on question type
+            let suffix = '';
+            const question = part.question.toLowerCase();
+            if (question.includes('kiminle')) {
+                suffix = ' ile';
+            } else if (question.includes('demiş')) {
+                suffix = ' demiş';
+            }
+
+            // Add comma to all except the last one
+            const comma = partIndex < story.parts.length - 1 ? ',' : '';
+
             partsHtml += `
                 <div class="story-part" style="animation-delay: ${partIndex * 0.5}s">
-                    <span class="highlight">${part.answer}</span>
-                    <span class="story-author">(${part.player_nickname})</span>
+                    <span class="highlight">${part.answer}${suffix}${comma}</span>
                 </div>
             `;
         });
