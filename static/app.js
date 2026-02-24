@@ -306,19 +306,21 @@ function updateTimerDisplay() {
 }
 
 function handleWaiting(data) {
-    elements.displays.waitingForList.innerHTML = '';
-
-    data.waiting_for.forEach(nickname => {
-        const li = document.createElement('li');
-        li.textContent = `⏳ ${nickname} cevaplıyor...`;
-        elements.displays.waitingForList.appendChild(li);
-    });
-
-    if (data.waiting_for.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = '✓ Tüm cevaplar alındı!';
-        elements.displays.waitingForList.appendChild(li);
+    // Only show waiting screen when all answers are collected
+    // If there are still players waiting, just show a toast
+    if (data.waiting_for.length > 0) {
+        // Still waiting for some players - don't switch screen
+        // Just show a status message in the question screen
+        const waitingNames = data.waiting_for.join(', ');
+        showToast(`Bekleniyor: ${waitingNames}`, 'info');
+        return;
     }
+
+    // All answers collected - show waiting screen briefly
+    elements.displays.waitingForList.innerHTML = '';
+    const li = document.createElement('li');
+    li.textContent = '✓ Tüm cevaplar alındı!';
+    elements.displays.waitingForList.appendChild(li);
 
     showScreen('waiting');
 }
