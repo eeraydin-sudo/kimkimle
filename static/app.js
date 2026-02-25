@@ -501,22 +501,52 @@ function renderStories() {
         storyDiv.dataset.index = index;
 
         let partsHtml = '';
-        story.parts.forEach((part, partIndex) => {
-            // Add suffix based on question type
-            let suffix = '';
-            const question = part.question.toLowerCase();
-            if (question.includes('kiminle')) {
-                suffix = ' ile';
-            } else if (question.includes('demiş')) {
-                suffix = ' demiş';
-            }
 
-            // Add comma to all except the last one
-            const comma = partIndex < story.parts.length - 1 ? ',' : '';
+        // Expected Default Order:
+        // 0: Kim?
+        // 1: Kiminle?
+        // 2: Nerede?
+        // 3: Ne zaman?
+        // 4: Ne Yapıyor?
+        // 5: Kim Görmüş?
+        // 6: Ne Demiş?
+
+        story.parts.forEach((part, partIndex) => {
+            const answer = part.answer;
+            let formattedText = answer;
+            let suffix = '';
+
+            // Format logic based on question
+            if (partIndex === 0) {
+                // Kim -> (kim),
+                suffix = ', ';
+            } else if (partIndex === 1) {
+                // Kiminle -> (kiminle) ile,
+                suffix = ' ile, ';
+            } else if (partIndex === 2) {
+                // Nerede -> (nerede),
+                suffix = ', ';
+            } else if (partIndex === 3) {
+                // Ne zaman -> (ne zaman),
+                suffix = ', ';
+            } else if (partIndex === 4) {
+                // Ne yapıyor -> (ne yapıyor).
+                suffix = '. ';
+            } else if (partIndex === 5) {
+                // Kim görmüş -> (kim görmüş) gördü.
+                suffix = ' gördü. ';
+            } else if (partIndex === 6) {
+                // Ne demiş -> (ne demiş) dedi.
+                suffix = ' dedi.';
+            } else {
+                // Custom questions handling (append with comma)
+                suffix = ', ';
+                if (partIndex === story.parts.length - 1) suffix = '';
+            }
 
             partsHtml += `
                 <div class="story-part" style="animation-delay: ${partIndex * 0.5}s">
-                    <span class="highlight">${part.answer}${suffix}${comma}</span>
+                    <span class="highlight">${formattedText}${suffix}</span>
                 </div>
             `;
         });
