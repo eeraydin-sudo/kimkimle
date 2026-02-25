@@ -239,6 +239,14 @@ function handleRoomCreated(data) {
 
     showScreen('lobby');
     updateLobbyUI();
+
+    // Close existing WebSocket before creating a new one
+    if (state.ws) {
+        state.ws.onclose = null;
+        state.ws.close();
+        state.ws = null;
+    }
+
     connectWebSocket(state.playerId);
 }
 
@@ -253,6 +261,14 @@ function handleRoomJoined(data) {
 
     showScreen('lobby');
     updateLobbyUI();
+
+    // Close existing WebSocket before creating a new one
+    if (state.ws) {
+        state.ws.onclose = null;
+        state.ws.close();
+        state.ws = null;
+    }
+
     connectWebSocket(state.playerId);
 }
 
