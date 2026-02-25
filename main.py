@@ -33,13 +33,13 @@ async def health_check():
 
 # ============== Constants (from GDD) ==============
 
-MIN_PLAYERS = 3
+MIN_PLAYERS = 2
 MAX_PLAYERS = 8
 ROOM_CODE_LENGTH = 4
-ANSWER_TIMER_SECONDS = 35
+ANSWER_TIMER_SECONDS = 20
 RECONNECT_TIMEOUT_SECONDS = 30
-MAX_ANSWER_LENGTH = 100
-MAX_NICKNAME_LENGTH = 20
+MAX_ANSWER_LENGTH = 64
+MAX_NICKNAME_LENGTH = 12
 RATE_LIMIT_PER_IP = 50  # events per second - increased for same-IP testing
 
 
@@ -326,7 +326,7 @@ async def send_next_question(room: Room):
 
 
 async def timer_tick(room: Room):
-    """Countdown timer - 35 seconds per GDD"""
+    """Countdown timer - 20 seconds per GDD"""
     try:
         while room.timer_remaining > 0 and room.state == GameState.PLAYING:
             await manager.broadcast({

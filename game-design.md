@@ -27,7 +27,7 @@ Bu belge **2–4 haftalık hızlı prototip / demo** hedefini kapsamaktadır.
 - Lobi kurma ve odaya katılma
 - Takma adla oturum açma
 - Klasik 6 soruluk oyun döngüsü + host'un özel soru ekleyebilmesi
-- 35 saniyelik cevap süresi sayacı
+- 20 saniyelik cevap süresi sayacı
 - Sunucu taraflı sanal kağıt kaydırma algoritması
 - Sıralı hikaye açılış ekranı
 - Bağlantı kopma yönetimi (30 sn yeniden bağlanma süresi)
@@ -60,7 +60,7 @@ Bir oyuncu "Oda Kur" seçeneğiyle lobi oluşturur; rastgele 4 karakterlik bir o
 
 ### 5.2 Tur Akışı
 1. Host "Oyunu Başlat" düğmesine basar.
-2. Her turda tüm oyuncuların ekranında aynı soru belirir ve **35 saniyelik geri sayım** başlar.
+2. Her turda tüm oyuncuların ekranında aynı soru belirir ve **20 saniyelik geri sayım** başlar.
 3. Süre dolmadan önce cevabını onaylayan oyuncular bekleme ekranına geçer; diğerlerinin süresi dolunca cevapları otomatik olarak (boş veya yazılan metin) gönderilir.
 4. Tüm cevaplar alındığında sunucu bir sonraki soruya geçer.
 5. Tüm sorular tamamlandığında Büyük Açılış ekranı başlar.
@@ -99,7 +99,7 @@ Oyun bitişinde tüm oyunculara iki seçenek sunulur:
 [Lobi Ekranı]
     └── Host "Başlat" → [Soru Ekranı]
 
-[Soru Ekranı] (35 sn sayaç)
+[Soru Ekranı] (20 sn sayaç)
     └── Cevap gönder → [Bekleme] → Sonraki soru → ... → [Büyük Açılış]
 
 [Büyük Açılış]
@@ -125,7 +125,7 @@ Oyun bitişinde tüm oyunculara iki seçenek sunulur:
 - Yeni host tüm oyunculara bildirilir: *"[Takma Ad] artık host."*
 
 ### 7.3 Süre Dolması
-- 35 saniye içinde cevap göndermeyen oyuncuların o tura ait cevabı **boş** olarak kaydedilir.
+- 20 saniye içinde cevap göndermeyen oyuncuların o tura ait cevabı **boş** olarak kaydedilir.
 - Oyuncu uyarılır: *"Süren doldu, cevabın boş geçildi."*
 
 ### 7.4 Oda Geçerliliği
@@ -182,7 +182,7 @@ frontend/
     └── components/
         ├── HomeScreen.vue      # Giriş: Oda kur / Katıl
         ├── LobbyScreen.vue     # Lobi: Oyuncu listesi, soru düzenleme
-        ├── QuestionScreen.vue  # Soru + 35sn sayaç
+        ├── QuestionScreen.vue  # Soru + 20sn sayaç
         ├── WaitingScreen.vue   # Diğerleri yazıyor...
         ├── RevealScreen.vue    # Büyük Açılış animasyonu
         └── EndScreen.vue       # Tekrar Oyna / Çık

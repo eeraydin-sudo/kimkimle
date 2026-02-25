@@ -6,7 +6,7 @@
 
 // ============== Constants (from GDD) ==============
 
-const ANSWER_TIMER_SECONDS = 35;
+const ANSWER_TIMER_SECONDS = 20;
 const RECONNECT_TIMEOUT_SECONDS = 30;
 const MAX_PLAYERS = 8;
 const MIN_PLAYERS = 3;
