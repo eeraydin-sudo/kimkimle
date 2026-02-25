@@ -87,24 +87,6 @@ const elements = {
         finishedControls: document.getElementById('finished-controls'),
         reconnectCountdown: document.getElementById('reconnect-countdown')
     },
-    displays: {
-        roomCode: document.getElementById('room-code-display'),
-        playerCount: document.getElementById('player-count'),
-        playerList: document.getElementById('player-list'),
-        questionList: document.getElementById('question-list'),
-        hostControls: document.getElementById('host-controls'),
-        playerWaiting: document.getElementById('player-waiting'),
-        questionText: document.getElementById('question-text'),
-        currentQuestionNum: document.getElementById('current-question-num'),
-        totalQuestions: document.getElementById('total-questions'),
-        timerValue: document.getElementById('timer-value'),
-        timer: document.getElementById('timer'),
-        waitingForList: document.getElementById('waiting-for-list'),
-        storiesContainer: document.getElementById('stories-container'),
-        storyCounter: document.getElementById('story-counter'),
-        finishedControls: document.getElementById('finished-controls'),
-        reconnectCountdown: document.getElementById('reconnect-countdown')
-    },
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toast-message')
 };
