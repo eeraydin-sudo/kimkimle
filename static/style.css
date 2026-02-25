@@ -246,6 +246,44 @@ input[type="text"]:disabled.submitted {
     gap: 12px;
 }
 
+/* Entry Screen - New Layout */
+.button-row {
+    margin-bottom: 16px;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.join-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.join-row input {
+    flex: 1;
+    padding: 14px 16px;
+}
+
+.join-row .btn {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    white-space: nowrap;
+}
+
+.room-code-display {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-top: 8px;
+}
+
+.room-code-display span {
+    color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
 .hint {
     display: block;
     font-size: 0.8rem;

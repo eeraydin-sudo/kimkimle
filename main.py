@@ -187,17 +187,22 @@ class GameManager:
         
         if room and player_id in room.players:
             player = room.players[player_id]
-            player.is_connected = False
             
             # Handle host transfer
             if player.is_host:
                 self._transfer_host(room)
             
+            # Delete from player_rooms first, then remove from room.players completely
+            del self.player_rooms[player_id]
+            del room.players[player_id]
+            
             # Check if room is empty
             if not room.get_connected_players():
                 del self.rooms[room_code]
-        
-        del self.player_rooms[player_id]
+        else:
+            # Player not in room, just clean up player_rooms
+            if player_id in self.player_rooms:
+                del self.player_rooms[player_id]
     
     def get_room(self, room_code: str) -> Optional[Room]:
         return self.rooms.get(room_code.upper())
@@ -696,6 +701,11 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                 break
     
     except WebSocketDisconnect:
+        # Check if player already left via leave_room
+        room = game_manager.get_player_room(player_id)
+        if not room:
+            return  # Player already cleanly exited via leave_room
+        
         player.is_connected = False
         player.reconnect_timeout = time.time() + RECONNECT_TIMEOUT_SECONDS
         

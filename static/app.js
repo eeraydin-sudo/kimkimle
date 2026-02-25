@@ -37,7 +37,8 @@ const state = {
 const elements = {
     screens: {
         entry: document.getElementById('screen-entry'),
-        join: document.getElementById('screen-join'),
+        createNickname: document.getElementById('screen-create-nickname'),
+        joinNickname: document.getElementById('screen-join-nickname'),
         lobby: document.getElementById('screen-lobby'),
         question: document.getElementById('screen-question'),
         waiting: document.getElementById('screen-waiting'),
@@ -46,8 +47,8 @@ const elements = {
         disconnected: document.getElementById('screen-disconnected')
     },
     inputs: {
-        nickname: document.getElementById('nickname'),
         roomCode: document.getElementById('room-code'),
+        createNickname: document.getElementById('create-nickname'),
         joinNickname: document.getElementById('join-nickname'),
         answer: document.getElementById('answer-input'),
         newQuestion: document.getElementById('new-question')
@@ -55,6 +56,7 @@ const elements = {
     buttons: {
         create: document.getElementById('btn-create'),
         join: document.getElementById('btn-join'),
+        createRoom: document.getElementById('btn-create-room'),
         joinRoom: document.getElementById('btn-join-room'),
         copyCode: document.getElementById('btn-copy-code'),
         startGame: document.getElementById('btn-start-game'),
@@ -65,6 +67,25 @@ const elements = {
         exit: document.getElementById('btn-exit'),
         prevStory: document.getElementById('btn-prev-story'),
         nextStory: document.getElementById('btn-next-story')
+    },
+    displays: {
+        roomCode: document.getElementById('room-code-display'),
+        joinRoomCodeDisplay: document.getElementById('join-room-code-display'),
+        playerCount: document.getElementById('player-count'),
+        playerList: document.getElementById('player-list'),
+        questionList: document.getElementById('question-list'),
+        hostControls: document.getElementById('host-controls'),
+        playerWaiting: document.getElementById('player-waiting'),
+        questionText: document.getElementById('question-text'),
+        currentQuestionNum: document.getElementById('current-question-num'),
+        totalQuestions: document.getElementById('total-questions'),
+        timerValue: document.getElementById('timer-value'),
+        timer: document.getElementById('timer'),
+        waitingForList: document.getElementById('waiting-for-list'),
+        storiesContainer: document.getElementById('stories-container'),
+        storyCounter: document.getElementById('story-counter'),
+        finishedControls: document.getElementById('finished-controls'),
+        reconnectCountdown: document.getElementById('reconnect-countdown')
     },
     displays: {
         roomCode: document.getElementById('room-code-display'),
@@ -520,13 +541,35 @@ function updateStoryNavigation() {
 
 // ============== Event Handlers ==============
 
-// Create Room
-elements.buttons.create.addEventListener('click', async () => {
-    const nickname = elements.inputs.nickname.value.trim();
+// Show Create Nickname Screen
+elements.buttons.create.addEventListener('click', () => {
+    showScreen('createNickname');
+    elements.inputs.createNickname.focus();
+});
+
+// Show Join Nickname Screen (after validating room code)
+elements.buttons.join.addEventListener('click', () => {
+    const roomCode = elements.inputs.roomCode.value.trim().toUpperCase();
+
+    if (!roomCode || roomCode.length !== 4) {
+        showToast('Geçerli bir oda kodu gir', 'error');
+        elements.inputs.roomCode.focus();
+        return;
+    }
+
+    state.roomCode = roomCode;
+    elements.displays.joinRoomCodeDisplay.textContent = roomCode;
+    showScreen('joinNickname');
+    elements.inputs.joinNickname.focus();
+});
+
+// Create Room (after entering nickname)
+elements.buttons.createRoom.addEventListener('click', async () => {
+    const nickname = elements.inputs.createNickname.value.trim();
 
     if (!nickname) {
         showToast('Lütfen takma adını gir', 'error');
-        elements.inputs.nickname.focus();
+        elements.inputs.createNickname.focus();
         return;
     }
 
@@ -572,28 +615,17 @@ elements.buttons.create.addEventListener('click', async () => {
     }
 });
 
-// Show Join Screen
-elements.buttons.join.addEventListener('click', () => {
-    showScreen('join');
-    elements.inputs.roomCode.focus();
-});
-
-// Join Room
+// Join Room (after entering nickname)
 elements.buttons.joinRoom.addEventListener('click', async () => {
-    const roomCode = elements.inputs.roomCode.value.trim().toUpperCase();
     const nickname = elements.inputs.joinNickname.value.trim();
-
-    if (!roomCode || roomCode.length !== 4) {
-        showToast('Geçerli bir oda kodu gir', 'error');
-        elements.inputs.roomCode.focus();
-        return;
-    }
 
     if (!nickname) {
         showToast('Lütfen takma adını gir', 'error');
         elements.inputs.joinNickname.focus();
         return;
     }
+
+    const roomCode = state.roomCode;
 
     try {
         const response = await fetch('/api/join-room', {
@@ -613,7 +645,6 @@ elements.buttons.joinRoom.addEventListener('click', async () => {
         // Connect via WebSocket
         const tempId = 'temp_' + Math.random().toString(36).substr(2, 9);
         state.nickname = nickname;
-        state.roomCode = roomCode;
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/${tempId}`;
@@ -747,5 +778,5 @@ elements.inputs.roomCode.addEventListener('input', (e) => {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     showScreen('entry');
-    elements.inputs.nickname.focus();
+    elements.inputs.roomCode.focus();
 });

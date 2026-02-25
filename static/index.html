@@ -23,17 +23,18 @@
                 </div>
 
                 <div class="card">
-                    <div class="form-group">
-                        <label for="nickname">Takma Adın</label>
-                        <input type="text" id="nickname" maxlength="20" placeholder="Adını yaz..."
-                            autocomplete="new-password">
-                    </div>
-
-                    <div class="button-group">
-                        <button id="btn-create" class="btn btn-primary btn-large">
+                    <!-- Row 1: Oda Kur -->
+                    <div class="button-row">
+                        <button id="btn-create" class="btn btn-primary btn-large btn-full">
                             🏠 Oda Kur
                         </button>
-                        <button id="btn-join" class="btn btn-secondary btn-large">
+                    </div>
+
+                    <!-- Row 2: Room code input + Odaya Katıl -->
+                    <div class="join-row">
+                        <input type="text" id="room-code" maxlength="4" placeholder="Oda kodu"
+                            style="text-transform: uppercase;" autocomplete="new-password">
+                        <button id="btn-join" class="btn btn-secondary">
                             🚪 Odaya Katıl
                         </button>
                     </div>
@@ -45,22 +46,40 @@
             </div>
         </div>
 
-        <!-- Odaya Katıl Ekranı (Join Room Screen) -->
-        <div id="screen-join" class="screen">
+        <!-- Oda Kur - Takma Ad Ekranı (Create Room - Nickname Screen) -->
+        <div id="screen-create-nickname" class="screen">
+            <div class="container">
+                <button class="btn-back" onclick="showScreen('entry')">← Geri</button>
+
+                <div class="logo small">
+                    <h2>🏠 Oda Kur</h2>
+                </div>
+
+                <div class="card">
+                    <div class="form-group">
+                        <label for="create-nickname">Takma Adın</label>
+                        <input type="text" id="create-nickname" maxlength="20" placeholder="Adını yaz..."
+                            autocomplete="new-password">
+                    </div>
+
+                    <button id="btn-create-room" class="btn btn-primary btn-large">
+                        Oluştur
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Odaya Katıl - Takma Ad Ekranı (Join Room - Nickname Screen) -->
+        <div id="screen-join-nickname" class="screen">
             <div class="container">
                 <button class="btn-back" onclick="showScreen('entry')">← Geri</button>
 
                 <div class="logo small">
                     <h2>🚪 Odaya Katıl</h2>
+                    <p class="room-code-display">Oda: <span id="join-room-code-display">----</span></p>
                 </div>
 
                 <div class="card">
-                    <div class="form-group">
-                        <label for="room-code">Oda Kodu</label>
-                        <input type="text" id="room-code" maxlength="4" placeholder="Örn: A7B2"
-                            style="text-transform: uppercase;" autocomplete="new-password">
-                    </div>
-
                     <div class="form-group">
                         <label for="join-nickname">Takma Adın</label>
                         <input type="text" id="join-nickname" maxlength="20" placeholder="Adını yaz..."
