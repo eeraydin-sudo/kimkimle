@@ -336,7 +336,7 @@ async def timer_tick(room: Room):
 
 
 async def collect_answers(room: Room):
-    """Collect all answers (empty for those who didn't answer)"""
+    """Collect all answers (dash for those who didn't answer)"""
     # Cancel timer if still running
     if room.timer_task:
         room.timer_task.cancel()
@@ -346,10 +346,11 @@ async def collect_answers(room: Room):
     if room.current_question_index not in room.answers:
         room.answers[room.current_question_index] = {}
     
-    # Collect all answers (empty string for those who didn't answer)
+    # Collect all answers ("-" for those who didn't answer in time)
     for player in room.get_connected_players():
         if player.id not in room.answers[room.current_question_index]:
-            room.answers[room.current_question_index][player.id] = player.current_answer or ""
+            # Use "-" for players who didn't answer in time
+            room.answers[room.current_question_index][player.id] = player.current_answer or "-"
         player.current_answer = ""
     
     # Show waiting screen
