@@ -301,19 +301,25 @@ async def send_next_question(room: Room):
     """Send next question to all players"""
     all_questions = room.questions + room.custom_questions
     
+    print(f"send_next_question: index={room.current_question_index}, total={len(all_questions)}")
+    
     if room.current_question_index >= len(all_questions):
+        print(f"All questions done, starting reveal for room {room.code}")
         await start_reveal(room)
         return
     
     room.timer_remaining = ANSWER_TIMER_SECONDS
     
-    await manager.broadcast({
+    question_data = {
         "event": "next_question",
         "question": all_questions[room.current_question_index],
         "question_index": room.current_question_index,
         "total": len(all_questions),
         "remaining_seconds": ANSWER_TIMER_SECONDS
-    }, room)
+    }
+    print(f"Sending next_question: {question_data}")
+    
+    await manager.broadcast(question_data, room)
     
     # Start timer
     room.timer_task = asyncio.create_task(timer_tick(room))
@@ -321,24 +327,36 @@ async def send_next_question(room: Room):
 
 async def timer_tick(room: Room):
     """Countdown timer - 35 seconds per GDD"""
-    while room.timer_remaining > 0 and room.state == GameState.PLAYING:
-        await manager.broadcast({
-            "event": "timer_tick",
-            "remaining_seconds": room.timer_remaining
-        }, room)
+    try:
+        while room.timer_remaining > 0 and room.state == GameState.PLAYING:
+            await manager.broadcast({
+                "event": "timer_tick",
+                "remaining_seconds": room.timer_remaining
+            }, room)
+            
+            await asyncio.sleep(1)
+            room.timer_remaining -= 1
         
-        await asyncio.sleep(1)
-        room.timer_remaining -= 1
-    
-    if room.state == GameState.PLAYING:
-        # Time's up - collect empty answers
-        await collect_answers(room)
+        if room.state == GameState.PLAYING:
+            # Time's up - collect empty answers
+            # Clear timer task reference first since we're inside the task
+            room.timer_task = None
+            await collect_answers(room, from_timer=True)
+    except asyncio.CancelledError:
+        # Timer was cancelled (e.g., all players answered)
+        print(f"Timer cancelled for room {room.code}")
+        raise
+    except Exception as e:
+        print(f"Timer error for room {room.code}: {e}")
+        room.timer_task = None
 
 
-async def collect_answers(room: Room):
+async def collect_answers(room: Room, from_timer: bool = False):
     """Collect all answers (dash for those who didn't answer)"""
-    # Cancel timer if still running
-    if room.timer_task:
+    print(f"collect_answers called for room {room.code}, from_timer={from_timer}")
+    
+    # Cancel timer if still running and not called from timer itself
+    if not from_timer and room.timer_task:
         room.timer_task.cancel()
         room.timer_task = None
     
@@ -351,13 +369,16 @@ async def collect_answers(room: Room):
         if player.id not in room.answers[room.current_question_index]:
             # Use "-" for players who didn't answer in time
             room.answers[room.current_question_index][player.id] = player.current_answer or "-"
+            print(f"Player {player.nickname} didn't answer, using '-'")
         player.current_answer = ""
     
-    # Show waiting screen
+    # Show waiting screen briefly
     await manager.broadcast({
         "event": "waiting",
         "waiting_for": []
     }, room)
+    
+    print(f"Moving to next question from index {room.current_question_index}")
     
     # Move to next question
     room.current_question_index += 1
