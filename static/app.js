@@ -243,14 +243,26 @@ function handleRoomCreated(data) {
     showScreen('lobby');
     updateLobbyUI();
 
-    // Close existing WebSocket before creating a new one
+    // Keep the existing WebSocket connection - just update message handler
     if (state.ws) {
-        state.ws.onclose = null;
-        state.ws.close();
-        state.ws = null;
+        state.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+        };
+        state.ws.onclose = (event) => {
+            console.log('WebSocket closed', event);
+            if (state.reconnectAttempts < state.maxReconnectAttempts) {
+                state.reconnectAttempts++;
+                showToast(`Bağlantı koptu, yeniden bağlanıyor... (${state.reconnectAttempts}/${state.maxReconnectAttempts})`, 'error');
+                setTimeout(() => {
+                    connectWebSocket(state.playerId);
+                }, 2000);
+            } else {
+                showScreen('disconnected');
+                startReconnectCountdown();
+            }
+        };
     }
-
-    connectWebSocket(state.playerId);
 }
 
 function handleRoomJoined(data) {
@@ -265,14 +277,26 @@ function handleRoomJoined(data) {
     showScreen('lobby');
     updateLobbyUI();
 
-    // Close existing WebSocket before creating a new one
+    // Keep the existing WebSocket connection - just update message handler
     if (state.ws) {
-        state.ws.onclose = null;
-        state.ws.close();
-        state.ws = null;
+        state.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+        };
+        state.ws.onclose = (event) => {
+            console.log('WebSocket closed', event);
+            if (state.reconnectAttempts < state.maxReconnectAttempts) {
+                state.reconnectAttempts++;
+                showToast(`Bağlantı koptu, yeniden bağlanıyor... (${state.reconnectAttempts}/${state.maxReconnectAttempts})`, 'error');
+                setTimeout(() => {
+                    connectWebSocket(state.playerId);
+                }, 2000);
+            } else {
+                showScreen('disconnected');
+                startReconnectCountdown();
+            }
+        };
     }
-
-    connectWebSocket(state.playerId);
 }
 
 function handleRoomUpdated(data) {
@@ -591,6 +615,32 @@ elements.buttons.createRoom.addEventListener('click', async () => {
             }
         };
 
+        state.ws.onclose = (event) => {
+            console.log('WebSocket closed during room creation', event);
+            if (state.playerId) {
+                // Room was created, try to reconnect
+                if (state.reconnectAttempts < state.maxReconnectAttempts) {
+                    state.reconnectAttempts++;
+                    showToast(`Bağlantı koptu, yeniden bağlanıyor...`, 'error');
+                    setTimeout(() => {
+                        connectWebSocket(state.playerId);
+                    }, 2000);
+                } else {
+                    showScreen('disconnected');
+                    startReconnectCountdown();
+                }
+            } else {
+                // Room wasn't created yet
+                showToast('Bağlantı koptu, lütfen tekrar deneyin', 'error');
+                showScreen('entry');
+            }
+        };
+
+        state.ws.onerror = (error) => {
+            console.error('WebSocket error during room creation:', error);
+            showToast('Bağlantı hatası', 'error');
+        };
+
     } catch (error) {
         showToast('Oda oluşturulamadı', 'error');
         console.error(error);
@@ -650,6 +700,32 @@ elements.buttons.joinRoom.addEventListener('click', async () => {
             } else {
                 handleWebSocketMessage(data);
             }
+        };
+
+        state.ws.onclose = (event) => {
+            console.log('WebSocket closed during room join', event);
+            if (state.playerId) {
+                // Room was joined, try to reconnect
+                if (state.reconnectAttempts < state.maxReconnectAttempts) {
+                    state.reconnectAttempts++;
+                    showToast(`Bağlantı koptu, yeniden bağlanıyor...`, 'error');
+                    setTimeout(() => {
+                        connectWebSocket(state.playerId);
+                    }, 2000);
+                } else {
+                    showScreen('disconnected');
+                    startReconnectCountdown();
+                }
+            } else {
+                // Room wasn't joined yet
+                showToast('Bağlantı koptu, lütfen tekrar deneyin', 'error');
+                showScreen('entry');
+            }
+        };
+
+        state.ws.onerror = (error) => {
+            console.error('WebSocket error during room join:', error);
+            showToast('Bağlantı hatası', 'error');
         };
 
     } catch (error) {

@@ -40,7 +40,7 @@ ANSWER_TIMER_SECONDS = 35
 RECONNECT_TIMEOUT_SECONDS = 30
 MAX_ANSWER_LENGTH = 100
 MAX_NICKNAME_LENGTH = 20
-RATE_LIMIT_PER_IP = 10  # events per second
+RATE_LIMIT_PER_IP = 50  # events per second - increased for same-IP testing
 
 
 # ============== Data Models ==============
