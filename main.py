@@ -223,11 +223,12 @@ class GameManager:
         return nickname
     
     def _get_default_questions(self) -> List[str]:
-        """Default 6 questions from GDD"""
+        """Default 7 questions from GDD"""
         return [
             "Kim?",
             "Kiminle?",
             "Nerede?",
+            "Ne zaman?",
             "Ne Yapıyor?",
             "Kim Görmüş?",
             "Ne Demiş?"
