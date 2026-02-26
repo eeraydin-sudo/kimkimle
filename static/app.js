@@ -9,7 +9,7 @@
 const ANSWER_TIMER_SECONDS = 20;
 const RECONNECT_TIMEOUT_SECONDS = 30;
 const MAX_PLAYERS = 8;
-const MIN_PLAYERS = 3;
+const MIN_PLAYERS = 2;
 
 // ============== State Management ==============
 
@@ -50,8 +50,7 @@ const elements = {
         roomCode: document.getElementById('room-code'),
         createNickname: document.getElementById('create-nickname'),
         joinNickname: document.getElementById('join-nickname'),
-        answer: document.getElementById('answer-input'),
-        newQuestion: document.getElementById('new-question')
+        answer: document.getElementById('answer-input')
     },
     buttons: {
         create: document.getElementById('btn-create'),
@@ -61,7 +60,6 @@ const elements = {
         copyCode: document.getElementById('btn-copy-code'),
         startGame: document.getElementById('btn-start-game'),
         submitAnswer: document.getElementById('btn-submit-answer'),
-        addQuestion: document.getElementById('btn-add-question'),
         leaveLobby: document.getElementById('btn-leave-lobby'),
         playAgain: document.getElementById('btn-play-again'),
         exit: document.getElementById('btn-exit'),
@@ -73,7 +71,6 @@ const elements = {
         joinRoomCodeDisplay: document.getElementById('join-room-code-display'),
         playerCount: document.getElementById('player-count'),
         playerList: document.getElementById('player-list'),
-        questionList: document.getElementById('question-list'),
         hostControls: document.getElementById('host-controls'),
         playerWaiting: document.getElementById('player-waiting'),
         questionText: document.getElementById('question-text'),
@@ -218,9 +215,6 @@ function handleWebSocketMessage(data) {
             break;
         case 'host_changed':
             handleHostChanged(data);
-            break;
-        case 'questions_updated':
-            handleQuestionsUpdated(data);
             break;
         case 'game_reset':
             handleGameReset(data);
@@ -410,11 +404,6 @@ function handleHostChanged(data) {
     }
 }
 
-function handleQuestionsUpdated(data) {
-    state.questions = data.questions;
-    renderQuestionList();
-}
-
 function handleGameReset(data) {
     state.currentQuestionIndex = 0;
     state.stories = [];
@@ -448,7 +437,7 @@ function updatePlayerList(players) {
         elements.displays.playerList.appendChild(li);
     });
 
-    // Update start button state (min 3 players per GDD)
+    // Update start button state (min 2 players per GDD)
     const connectedCount = players.filter(p => p.is_connected).length;
     elements.buttons.startGame.disabled = connectedCount < MIN_PLAYERS;
 }
@@ -463,33 +452,6 @@ function updateLobbyUI() {
         elements.displays.playerWaiting.classList.remove('hidden');
         elements.displays.finishedControls.classList.add('hidden');
     }
-
-    renderQuestionList();
-}
-
-function renderQuestionList() {
-    elements.displays.questionList.innerHTML = '';
-
-    state.questions.forEach((question, index) => {
-        const li = document.createElement('li');
-        const isCustom = index >= 6; // Default questions are 6
-
-        li.className = isCustom ? 'custom' : '';
-        li.innerHTML = `
-            <span>${index + 1}. ${question}</span>
-            ${isCustom && state.isHost ? `<button class="remove-btn" data-index="${index}">✕</button>` : ''}
-        `;
-
-        elements.displays.questionList.appendChild(li);
-    });
-
-    // Add remove event listeners
-    elements.displays.questionList.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const index = parseInt(btn.dataset.index);
-            sendEvent('remove_question', { index });
-        });
-    });
 }
 
 function renderStories() {
@@ -538,10 +500,6 @@ function renderStories() {
             } else if (partIndex === 6) {
                 // Ne demiş -> (ne demiş) dedi.
                 suffix = ' dedi.';
-            } else {
-                // Custom questions handling (append with comma)
-                suffix = ', ';
-                if (partIndex === story.parts.length - 1) suffix = '';
             }
 
             partsHtml += `
@@ -802,23 +760,6 @@ elements.buttons.submitAnswer.addEventListener('click', () => {
 elements.inputs.answer.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !state.hasAnswered) {
         elements.buttons.submitAnswer.click();
-    }
-});
-
-// Add Question
-elements.buttons.addQuestion.addEventListener('click', () => {
-    const question = elements.inputs.newQuestion.value.trim();
-
-    if (question) {
-        sendEvent('add_question', { question });
-        elements.inputs.newQuestion.value = '';
-    }
-});
-
-// Enter key for adding question
-elements.inputs.newQuestion.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        elements.buttons.addQuestion.click();
     }
 });
 

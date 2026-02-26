@@ -33,7 +33,7 @@ async def health_check():
 
 # ============== Constants (from GDD) ==============
 
-MIN_PLAYERS = 3
+MIN_PLAYERS = 2
 MAX_PLAYERS = 8
 ROOM_CODE_LENGTH = 4
 ANSWER_TIMER_SECONDS = 20
@@ -70,7 +70,6 @@ class Room:
     players: Dict[str, Player] = field(default_factory=dict)
     state: GameState = GameState.LOBBY
     questions: List[str] = field(default_factory=list)
-    custom_questions: List[str] = field(default_factory=list)
     current_question_index: int = 0
     answers: Dict[int, Dict[str, str]] = field(default_factory=dict)  # question_index -> {player_id: answer}
     timer_task: Optional[asyncio.Task] = None
@@ -287,8 +286,7 @@ async def start_game(room: Room):
     room.answers = {}
     room.stories = []
     
-    # Combine default and custom questions
-    all_questions = room.questions + room.custom_questions
+    all_questions = room.questions
     
     await manager.broadcast({
         "event": "game_started",
@@ -300,7 +298,7 @@ async def start_game(room: Room):
 
 async def send_next_question(room: Room):
     """Send next question to all players"""
-    all_questions = room.questions + room.custom_questions
+    all_questions = room.questions
     
     print(f"send_next_question: index={room.current_question_index}, total={len(all_questions)}")
     
@@ -447,7 +445,7 @@ def generate_stories(room: Room) -> List[Dict]:
     Per GDD Section 5.4: Classic game's secrecy logic simulated via server-side 
     shifting algorithm.
     """
-    all_questions = room.questions + room.custom_questions
+    all_questions = room.questions
     connected_players = room.get_connected_players()
     player_ids = [p.id for p in connected_players]
     player_names = {p.id: p.nickname for p in connected_players}
@@ -495,7 +493,6 @@ async def reset_game(room: Room):
     room.current_question_index = 0
     room.answers = {}
     room.stories = []
-    room.custom_questions = []
     
     for player in room.players.values():
         player.current_answer = ""
@@ -649,7 +646,7 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
             
             # Send current game state
             if room.state == GameState.PLAYING:
-                all_questions = room.questions + room.custom_questions
+                all_questions = room.questions
                 await manager.send_personal({
                     "event": "game_started",
                     "questions": all_questions
@@ -693,26 +690,7 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                     answer = data.get("answer", "")
                     await submit_answer(room, player, answer)
             
-            elif event == "add_question":
-                if player.is_host and room.state == GameState.LOBBY:
-                    question = data.get("question", "").strip()
-                    if question and len(question) <= MAX_ANSWER_LENGTH:
-                        room.custom_questions.append(question)
-                        await manager.broadcast({
-                            "event": "questions_updated",
-                            "questions": room.questions + room.custom_questions
-                        }, room)
-            
-            elif event == "remove_question":
-                if player.is_host and room.state == GameState.LOBBY:
-                    index = data.get("index", -1)
-                    default_count = len(room.questions)
-                    if index >= default_count and index < default_count + len(room.custom_questions):
-                        room.custom_questions.pop(index - default_count)
-                        await manager.broadcast({
-                            "event": "questions_updated",
-                            "questions": room.questions + room.custom_questions
-                        }, room)
+
             
             elif event == "play_again":
                 if player.is_host and room.state == GameState.REVEAL:

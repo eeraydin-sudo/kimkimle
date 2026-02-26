@@ -24,7 +24,7 @@ Klasik kağıt-kalem oyunu "Kim, Kiminle, Nerede, Ne Yapıyor?" eğlencesini, ar
 Oyun MVP kapsamını karşılamakta ve aşağıdaki özellikleri içermektedir:
 - Lobi kurma ve odaya katılma (4 haneli kod ile)
 - Takma adla oturum açma
-- 6 klasik oyun sorusu ve host'un lobi üzerinden özel soru ekleyip/çıkartabilme imkanı.
+- 7 sabit oyun sorusu.
 - Soru başına 35 saniyelik geri sayım sayacı.
 - Sunucu taraflı sanal kağıt kaydırma (paper folding) algoritması.
 - Oyun sonunda hikayelerin ekranda adım adım gösterildiği Büyük Açılış (Reveal) ekranı.
@@ -37,7 +37,7 @@ Oyun MVP kapsamını karşılamakta ve aşağıdaki özellikleri içermektedir:
 
 | Parametre | Değer |
 |-----------|-------|
-| Minimum oyuncu | 3 |
+| Minimum oyuncu | 2 |
 | Maksimum oyuncu | 8 |
 | Oda kodu formatı | 4 karakter alfanumerik (Harf ve Rakam, örn: A7B2) |
 
@@ -53,11 +53,11 @@ Oyuncular rastgele üretilen 4 karakterli oda kodu ile katılır. Lobi ekranınd
 2. 35 saniyelik ilk döngü sorusu başlar.
 3. Herkes cevabını gönderir. Süresi dolan ve cevap vermeyen oyuncular "-" karakterini boş cevap olarak yollamış sayılır.
 4. Tüm oyuncuların cevapları sunucuya ulaşınca bir sonraki soruya geçilir.
-5. Tüm turlar bitene kadar döngü tekrarlanır (6 varsayılan + varsa özel sorular).
+5. Tüm turlar bitene kadar döngü tekrarlanır (7 sabit soru).
 6. Tüm turlar bitince Büyük Açılış aşamasına geçilir.
 
 ### 5.3 Soru Seti
-Varsayılan 6 soru şunlardır:
+Sabit 7 soru şunlardır:
 1. Kim?
 2. Kiminle?
 3. Nerede?
@@ -65,8 +65,6 @@ Varsayılan 6 soru şunlardır:
 5. Ne Yapıyor?
 6. Kim Görmüş?
 7. Ne Demiş?
-
-Host lobi üzerindeyken dilediği kadar özel soru ekleyebilir ve çıkartabilir. Bu sorular klasik sıralamanın sonuna eklenerek devam eder.
 
 ### 5.4 Dijital "Kağıt Katlama"
 Klasik oyunun sır tutma mantığı backend'de çalışan kaydırma algoritması ile korunur. Her oyuncunun cevabı bir sonraki oyuncunun hikayesine kaydırılarak eklenir. Böylece kimse kendi cümlesinin sonunu göremez ve oyun sürpriz yapısını korur.
@@ -118,8 +116,7 @@ Sistem, HTTP yerine tamamen asenkron çift yönlü iletişim (WebSocket - `ws://
 | `join_room` | İstemci → Sunucu | Oda koduna göre varolan oyun lobisine bağlanır |
 | `room_created` | Sunucu → İstemci | Kurulum başarılı, oda bilgilerini client'a iletir |
 | `room_joined`, `room_updated`| Sunucu → İstemci | Katılım onayı ve oyuncu listesindeki değişimleri iletir |
-| `add_question` / `remove_question`| İstemci → Sunucu | Lobideyken soru eklendiğini/silindiğini belirtir |
-| `questions_updated` | Sunucu → İstemci | Yeni soru listesini diğer oyunculara duyurur |
+
 | `start_game`, `game_started` | Çift Yönlü | Host başlat komutunu yollar, sunucu onaylar |
 | `next_question`, `submit_answer` | Çift Yönlü | Sunucu yeni soruyu gönderir, oyuncu cevabını yollar |
 | `timer_tick`, `waiting` | Sunucu → İstemci | 35sn sayacını ve "Cevaplar bekleniyor" uyarılarını günceller |
