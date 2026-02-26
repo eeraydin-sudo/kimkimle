@@ -33,13 +33,13 @@ async def health_check():
 
 # ============== Constants (from GDD) ==============
 
-MIN_PLAYERS = 2
+MIN_PLAYERS = 3
 MAX_PLAYERS = 8
 ROOM_CODE_LENGTH = 4
 ANSWER_TIMER_SECONDS = 20
 RECONNECT_TIMEOUT_SECONDS = 30
-MAX_ANSWER_LENGTH = 64
-MAX_NICKNAME_LENGTH = 12
+MAX_ANSWER_LENGTH = 100
+MAX_NICKNAME_LENGTH = 20
 RATE_LIMIT_PER_IP = 50  # events per second - increased for same-IP testing
 
 
