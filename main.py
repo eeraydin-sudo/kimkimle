@@ -75,6 +75,8 @@ class Room:
     timer_task: Optional[asyncio.Task] = None
     timer_remaining: int = ANSWER_TIMER_SECONDS
     stories: List[Dict] = field(default_factory=list)
+    reveal_index: int = 0
+    expires_at: float = 0
     
     def get_player_list(self) -> List[dict]:
         return [
@@ -283,14 +285,15 @@ async def start_game(room: Room):
     """Start the game - called when host clicks start"""
     room.state = GameState.PLAYING
     room.current_question_index = 0
+    room.timer_remaining = ANSWER_TIMER_SECONDS
     room.answers = {}
     room.stories = []
-    
-    all_questions = room.questions
+    room.expires_at = time.time() + ANSWER_TIMER_SECONDS
     
     await manager.broadcast({
         "event": "game_started",
-        "questions": all_questions
+        "questions": all_questions,
+        "expires_at": room.expires_at
     }, room)
     
     await send_next_question(room)
@@ -309,12 +312,14 @@ async def send_next_question(room: Room):
     
     room.timer_remaining = ANSWER_TIMER_SECONDS
     
+    room.expires_at = time.time() + ANSWER_TIMER_SECONDS
+    
     question_data = {
         "event": "next_question",
         "question": all_questions[room.current_question_index],
         "question_index": room.current_question_index,
         "total": len(all_questions),
-        "remaining_seconds": ANSWER_TIMER_SECONDS
+        "expires_at": room.expires_at
     }
     print(f"Sending next_question: {question_data}")
     
@@ -325,20 +330,18 @@ async def send_next_question(room: Room):
 
 
 async def timer_tick(room: Room):
-    """Countdown timer - 20 seconds per GDD"""
+    """Silent countdown - proceeds to collect answers when time expires"""
     try:
-        while room.timer_remaining > 0 and room.state == GameState.PLAYING:
-            await manager.broadcast({
-                "event": "timer_tick",
-                "remaining_seconds": room.timer_remaining
-            }, room)
-            
-            await asyncio.sleep(1)
-            room.timer_remaining -= 1
+        # Wait until the expiration time
+        while True:
+            now = time.time()
+            remaining = room.expires_at - now
+            if remaining <= 0 or room.state != GameState.PLAYING:
+                break
+            # Sleep in small chunks but not every second to be efficient, or just wait the whole duration
+            await asyncio.sleep(min(remaining, 1.0))
         
         if room.state == GameState.PLAYING:
-            # Time's up - collect empty answers
-            # Clear timer task reference first since we're inside the task
             room.timer_task = None
             await collect_answers(room, from_timer=True)
     except asyncio.CancelledError:
@@ -433,7 +436,8 @@ async def start_reveal(room: Room):
     
     await manager.broadcast({
         "event": "reveal_results",
-        "stories": stories
+        "stories": stories,
+        "reveal_index": room.reveal_index
     }, room)
 
 
@@ -516,6 +520,11 @@ async def handle_reconnection(player_id: str, websocket: WebSocket, room: Room):
         await manager.broadcast({
             "event": "player_reconnected",
             "nickname": player.nickname
+        }, room)
+        
+        await manager.broadcast({
+            "event": "room_updated",
+            "players": room.get_player_list()
         }, room)
         
         return True
@@ -644,6 +653,11 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                 "nickname": player.nickname
             }, room)
             
+            await manager.broadcast({
+                "event": "room_updated",
+                "players": room.get_player_list()
+            }, room)
+            
             # Send current game state
             if room.state == GameState.PLAYING:
                 all_questions = room.questions
@@ -657,7 +671,7 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                     "question": all_questions[room.current_question_index],
                     "question_index": room.current_question_index,
                     "total": len(all_questions),
-                    "remaining_seconds": room.timer_remaining
+                    "expires_at": room.expires_at
                 }, websocket)
         else:
             player.websocket = websocket
@@ -689,6 +703,19 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                 if room.state == GameState.PLAYING:
                     answer = data.get("answer", "")
                     await submit_answer(room, player, answer)
+            
+            elif event == "change_story":
+                if player.is_host and room.state == GameState.REVEAL:
+                    direction = data.get("direction")
+                    if direction == "next" and room.reveal_index < len(room.stories) - 1:
+                        room.reveal_index += 1
+                    elif direction == "prev" and room.reveal_index > 0:
+                        room.reveal_index -= 1
+                    
+                    await manager.broadcast_to_room(room.code, {
+                        "event": "story_changed",
+                        "current_story_index": room.reveal_index
+                    })
             
 
             

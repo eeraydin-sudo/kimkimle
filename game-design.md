@@ -70,7 +70,7 @@ Sabit 7 soru şunlardır:
 Klasik oyunun sır tutma mantığı backend'de çalışan kaydırma algoritması ile korunur. Her oyuncunun cevabı bir sonraki oyuncunun hikayesine kaydırılarak eklenir. Böylece kimse kendi cümlesinin sonunu göremez ve oyun sürpriz yapısını korur.
 
 ### 5.5 Büyük Açılış ve Oyun Sonu
-Büyük Açılışta oyunculardan toplanan hikayeler bir araya getirilerek herkesin ekranına sunulur. Hikayeler arasında "Önceki" ve "Sonraki" butonlarıyla geçiş yapılır. Bütün hikayeler görüntülendikten sonra Host, dilerse "Tekrar Oyna" diyerek mevcut oyuncu grubuyla lobiyi yeniden başlatabilir veya herkes "Çık" seçeneğiyle çıkış yapabilir.
+Büyük Açılışta oyunculardan toplanan hikayeler bir araya getirilerek herkesin ekranına sunulur. Hikaye geçişleri sadece **Host** tarafından kontrol edilir; Host "Önceki" veya "Sonraki" butonlarına bastığında tüm oyuncuların ekranındaki hikaye senkronize şekilde değişir. Bütün hikayeler görüntülendikten sonra Host, dilerse "Tekrar Oyna" diyerek mevcut oyuncu grubuyla lobiyi yeniden başlatabilir veya herkes "Çık" seçeneğiyle çıkış yapabilir.
 
 ---
 
@@ -92,8 +92,7 @@ kimkimle/
 ├── main.py             # FastAPI WebSocket sunucusu, Oyun mantığı ve Statik HTML sunumu
 ├── requirements.txt    # fastapi, uvicorn, websockets, pydantic vb.
 ├── render.yaml         # Render.com auto-deployment ayarları
-├── game-design.md      # Eski Tasarım Belgesi
-├── game-design-2.md    # Güncel Tasarım Belgesi (Bu dosya)
+├── game-design.md      # Tasarım Belgesi
 └── static/
     ├── index.html      # Tek sayfalık arayüz (SPA benzeri modüler UI)
     ├── style.css       # Özelleştirilmiş oyun stiline uygun CSS
@@ -118,10 +117,12 @@ Sistem, HTTP yerine tamamen asenkron çift yönlü iletişim (WebSocket - `ws://
 | `room_joined`, `room_updated`| Sunucu → İstemci | Katılım onayı ve oyuncu listesindeki değişimleri iletir |
 
 | `start_game`, `game_started` | Çift Yönlü | Host başlat komutunu yollar, sunucu onaylar |
-| `next_question`, `submit_answer` | Çift Yönlü | Sunucu yeni soruyu gönderir, oyuncu cevabını yollar |
-| `timer_tick`, `waiting` | Sunucu → İstemci | 35sn sayacını ve "Cevaplar bekleniyor" uyarılarını günceller |
-| `reveal_results` | Sunucu → İstemci | Bütünleşik hikayeleri gösterim ekranına yansıtır |
-| `player_disconnected` | Sunucu → İstemci | Bağlantı koptu uyarısı verir, 30 saniyelik sayacı başlatır |
+| `next_question`, `submit_answer` | Çift Yönlü | Sunucu yeni soruyu bitiş zamanıyla (`expires_at`) beraber gönderir, oyuncu cevabını yollar |
+| `timer_tick` | Sunucu → İstemci | (Kaldırıldı - İstemci yerelinde hesaplıyor) |
+| `waiting` | Sunucu → İstemci | "Cevaplar bekleniyor" uyarılarını günceller |
+| `reconnect_timeout` | Sunucu → İstemci | Bağlantısı kopan oyuncunun geri dönme payını bildirir |
+| `change_story` | İstemci → Sunucu | Host hikayeler arasında geçiş yaptığında iletilir |
+| `story_changed` | Sunucu → İstemci | Tüm oyunculara yeni hikaye indexini duyurur |
 | `player_reconnected` | Sunucu → İstemci | Oyuncu zamanında dönerse oyuna devam edilmesini sağlar |
 | `host_changed`, `player_left` | Sunucu → İstemci | Kopmalar sonrası host transferi veya oyuncu eksilmelerini günceller |
 | `play_again`, `game_reset` | Çift Yönlü | Aynı hostun aynı grupla tekrar turu başlatmasını ayarlar |

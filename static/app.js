@@ -29,7 +29,9 @@ const state = {
     reconnectAttempts: 0,
     maxReconnectAttempts: 5,
     hasAnswered: false,
-    submittedAnswer: ''
+    submittedAnswer: '',
+    timerInterval: null,
+    expiresAt: 0
 };
 
 // ============== DOM Elements ==============
@@ -195,14 +197,14 @@ function handleWebSocketMessage(data) {
         case 'next_question':
             handleNextQuestion(data);
             break;
-        case 'timer_tick':
-            handleTimerTick(data);
-            break;
         case 'waiting':
             handleWaiting(data);
             break;
         case 'reveal_results':
             handleRevealResults(data);
+            break;
+        case 'story_changed':
+            handleStoryChanged(data);
             break;
         case 'player_disconnected':
             handlePlayerDisconnected(data);
@@ -310,20 +312,19 @@ function handleGameStarted(data) {
     state.currentQuestionIndex = 0;
     state.hasAnswered = false;
     state.submittedAnswer = '';
+    state.expiresAt = data.expires_at || (Date.now() / 1000 + ANSWER_TIMER_SECONDS);
 
     elements.displays.totalQuestions.textContent = state.totalQuestions;
     elements.inputs.answer.disabled = false;
     elements.inputs.answer.classList.remove('submitted');
     elements.buttons.submitAnswer.disabled = false;
 
+    startLocalTimer();
     showScreen('question');
 }
 
 function handleNextQuestion(data) {
-    state.currentQuestionIndex = data.question_index;
-    state.timer = data.remaining_seconds || ANSWER_TIMER_SECONDS;
-    state.hasAnswered = false;
-    state.submittedAnswer = '';
+    state.expiresAt = data.expires_at;
 
     elements.displays.questionText.textContent = data.question;
     elements.displays.currentQuestionNum.textContent = state.currentQuestionIndex + 1;
@@ -333,13 +334,34 @@ function handleNextQuestion(data) {
     elements.buttons.submitAnswer.disabled = false;
     elements.inputs.answer.focus();
 
-    updateTimerDisplay();
+    startLocalTimer();
     showScreen('question');
 }
 
+function startLocalTimer() {
+    if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+    }
+
+    const update = () => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((state.expiresAt * 1000 - now) / 1000));
+        state.timer = remaining;
+        updateTimerDisplay();
+
+        if (remaining <= 0) {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+        }
+    };
+
+    update(); // Initial call
+    state.timerInterval = setInterval(update, 1000);
+}
+
 function handleTimerTick(data) {
-    state.timer = data.remaining_seconds;
-    updateTimerDisplay();
+    // This is now handled locally, but keeping the signature for safety during transition
+    // if any old packets arrive.
 }
 
 function updateTimerDisplay() {
@@ -376,10 +398,15 @@ function handleWaiting(data) {
 
 function handleRevealResults(data) {
     state.stories = data.stories;
-    state.currentStoryIndex = 0;
+    state.currentStoryIndex = data.reveal_index || 0;
 
     renderStories();
     showScreen('reveal');
+}
+
+function handleStoryChanged(data) {
+    state.currentStoryIndex = data.current_story_index;
+    updateStoryNavigation();
 }
 
 function handlePlayerDisconnected(data) {
@@ -524,8 +551,16 @@ function updateStoryNavigation() {
     const total = state.stories.length;
     elements.displays.storyCounter.textContent = `${state.currentStoryIndex + 1} / ${total}`;
 
-    elements.buttons.prevStory.disabled = state.currentStoryIndex === 0;
-    elements.buttons.nextStory.disabled = state.currentStoryIndex >= total - 1;
+    // Only host can see and use navigation buttons
+    if (state.isHost) {
+        elements.buttons.prevStory.classList.remove('hidden');
+        elements.buttons.nextStory.classList.remove('hidden');
+        elements.buttons.prevStory.disabled = state.currentStoryIndex === 0;
+        elements.buttons.nextStory.disabled = state.currentStoryIndex >= total - 1;
+    } else {
+        elements.buttons.prevStory.classList.add('hidden');
+        elements.buttons.nextStory.classList.add('hidden');
+    }
 
     // Show/hide stories
     elements.displays.storiesContainer.querySelectorAll('.story').forEach((story, index) => {
@@ -772,16 +807,14 @@ elements.buttons.leaveLobby.addEventListener('click', () => {
 
 // Story Navigation
 elements.buttons.prevStory.addEventListener('click', () => {
-    if (state.currentStoryIndex > 0) {
-        state.currentStoryIndex--;
-        updateStoryNavigation();
+    if (state.isHost && state.currentStoryIndex > 0) {
+        sendEvent('change_story', { direction: 'prev' });
     }
 });
 
 elements.buttons.nextStory.addEventListener('click', () => {
-    if (state.currentStoryIndex < state.stories.length - 1) {
-        state.currentStoryIndex++;
-        updateStoryNavigation();
+    if (state.isHost && state.currentStoryIndex < state.stories.length - 1) {
+        sendEvent('change_story', { direction: 'next' });
     }
 });
 
