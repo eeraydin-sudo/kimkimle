@@ -1,4 +1,4 @@
-# Web Tabanlı "Kim Kiminle" Oyun Tasarım Belgesi (GDD)
+# Web Tabanlı "Kim Kiminle" Oyun Tasarım Belgesi (GDD v2 - Güncel Durum)
 
 ## 1. Oyunun Konsepti ve Amacı
 
@@ -13,33 +13,23 @@ Klasik kağıt-kalem oyunu "Kim, Kiminle, Nerede, Ne Yapıyor?" eğlencesini, ar
 - **İkincil:** Aile ortamları (4–8 kişi) — akşam yemekleri, tatil eğlenceleri
 
 ### Platform
-- **Öncelik:** Mobil ve masaüstü eşit öncelikli
-- Arayüz tüm ekran boyutlarında sorunsuz çalışacak şekilde **duyarlı (responsive)** tasarlanmalıdır.
-- Tarayıcı desteği: Chrome, Safari, Firefox'un güncel sürümleri (uygulama kurulumu gerekmez)
+- **Öncelik:** Mobil ve masaüstü eşit öncelikli.
+- Arayüz tüm ekran boyutlarında sorunsuz çalışacak şekilde **duyarlı (responsive)** tasarlanmıştır.
+- Tarayıcı desteği: Chrome, Safari, Firefox'un güncel sürümleri (uygulama kurulumu gerekmez).
 
 ---
 
-## 3. MVP Kapsamı
+## 3. Özellik Kapsamı (Mevcut Durum)
 
-Bu belge **2–4 haftalık hızlı prototip / demo** hedefini kapsamaktadır.
-
-### MVP'ye Dahil
-- Lobi kurma ve odaya katılma
+Oyun MVP kapsamını karşılamakta ve aşağıdaki özellikleri içermektedir:
+- Lobi kurma ve odaya katılma (4 haneli kod ile)
 - Takma adla oturum açma
-- Klasik 6 soruluk oyun döngüsü + host'un özel soru ekleyebilmesi
-- 20 saniyelik cevap süresi sayacı
-- Sunucu taraflı sanal kağıt kaydırma algoritması
-- Sıralı hikaye açılış ekranı
-- Bağlantı kopma yönetimi (30 sn yeniden bağlanma süresi)
-- Host devir mekanizması
-- Oyun sonu "Tekrar Oyna / Çık" ekranı
-
-### MVP Dışı (Gelecek Sürümler İçin)
-- Kullanıcı hesabı / kayıt sistemi
-- Liderlik tablosu / puanlama
-- Özel soru paketleri (18+, sinema temalı vb.)
-- Geçmiş oyunları görüntüleme
-- Emoji/beğeni tepkileri
+- 6 klasik oyun sorusu ve host'un lobi üzerinden özel soru ekleyip/çıkartabilme imkanı.
+- Soru başına 35 saniyelik geri sayım sayacı.
+- Sunucu taraflı sanal kağıt kaydırma (paper folding) algoritması.
+- Oyun sonunda hikayelerin ekranda adım adım gösterildiği Büyük Açılış (Reveal) ekranı.
+- Bağlantı kopmalarına karşı 30 saniyelik tolerans ve otomatik host devri mekanizması.
+- Oyun sonu "Tekrar Oyna / Çık" fonksiyonları.
 
 ---
 
@@ -49,232 +39,103 @@ Bu belge **2–4 haftalık hızlı prototip / demo** hedefini kapsamaktadır.
 |-----------|-------|
 | Minimum oyuncu | 3 |
 | Maksimum oyuncu | 8 |
-| Oda kodu formatı | 4 karakter alfanumerik (örn: A7B2) |
+| Oda kodu formatı | 4 karakter alfanumerik (Harf ve Rakam, örn: A7B2) |
 
 ---
 
 ## 5. Temel Mekanikler
 
 ### 5.1 Lobi Sistemi
-Bir oyuncu "Oda Kur" seçeneğiyle lobi oluşturur; rastgele 4 karakterlik bir oda kodu üretilir. Diğer oyuncular "Odaya Katıl" ekranından bu kodu ve takma adlarını girerek lobiye dahil olur. Lobi ekranında bağlı tüm oyuncuların takma adları listelenir. Oyunu yalnızca host başlatabilir.
+Oyuncular rastgele üretilen 4 karakterli oda kodu ile katılır. Lobi ekranında odaya bağlı oyuncular listelenir. Oyunu yalnızca host başlatabilir. Host, lobideyken soru ekleyebilir veya listeyi düzenleyebilir. Host oyundan düşerse veya çıkarsa hostluk otomatik olarak rastgele bir oyuncuya devredilerek oyun kesintiye uğramaz.
 
 ### 5.2 Tur Akışı
 1. Host "Oyunu Başlat" düğmesine basar.
-2. Her turda tüm oyuncuların ekranında aynı soru belirir ve **20 saniyelik geri sayım** başlar.
-3. Süre dolmadan önce cevabını onaylayan oyuncular bekleme ekranına geçer; diğerlerinin süresi dolunca cevapları otomatik olarak (boş veya yazılan metin) gönderilir.
-4. Tüm cevaplar alındığında sunucu bir sonraki soruya geçer.
-5. Tüm sorular tamamlandığında Büyük Açılış ekranı başlar.
+2. 35 saniyelik ilk döngü sorusu başlar.
+3. Herkes cevabını gönderir. Süresi dolan ve cevap vermeyen oyuncular "-" karakterini boş cevap olarak yollamış sayılır.
+4. Tüm oyuncuların cevapları sunucuya ulaşınca bir sonraki soruya geçilir.
+5. Tüm turlar bitene kadar döngü tekrarlanır (6 varsayılan + varsa özel sorular).
+6. Tüm turlar bitince Büyük Açılış aşamasına geçilir.
 
 ### 5.3 Soru Seti
-Varsayılan klasik 6 soru şunlardır:
-
+Varsayılan 6 soru şunlardır:
 1. Kim?
 2. Kiminle?
 3. Nerede?
-4. Ne Yapıyor?
-5. Kim Görmüş?
-6. Ne Demiş?
+4. Ne zaman?
+5. Ne Yapıyor?
+6. Kim Görmüş?
+7. Ne Demiş?
 
-Host, lobi ekranında bu listeye dilediği kadar özel soru ekleyebilir veya mevcut soruları sıralayabilir. Özel sorular klasik sorularla birlikte aynı döngüde işlenir.
+Host lobi üzerindeyken dilediği kadar özel soru ekleyebilir ve çıkartabilir. Bu sorular klasik sıralamanın sonuna eklenerek devam eder.
 
-### 5.4 Dijital "Kağıt Katlama" (Sanal Kağıt Sistemi)
-Klasik oyunun gizlilik mantığı sunucu taraflı bir kaydırma algoritmasıyla simüle edilir. Her oyuncunun cevabı, farklı bir "sanal kağıda" eklenerek oyuncular arasında gizlice dolaştırılır. Böylece hiçbir oyuncu kendi başlattığı cümlenin devamını göremez.
+### 5.4 Dijital "Kağıt Katlama"
+Klasik oyunun sır tutma mantığı backend'de çalışan kaydırma algoritması ile korunur. Her oyuncunun cevabı bir sonraki oyuncunun hikayesine kaydırılarak eklenir. Böylece kimse kendi cümlesinin sonunu göremez ve oyun sürpriz yapısını korur.
 
-### 5.5 Büyük Açılış (Sonuç Ekranı)
-Tüm sorular tamamlandığında sunucu birleşen hikayeleri tüm oyuncuların ekranına sırayla yansıtır. Her hikaye cümle cümle açılır. Okuma tamamlandığında bir sonraki hikayeye geçilir.
-
-Oyun bitişinde tüm oyunculara iki seçenek sunulur:
-- **Tekrar Oyna:** Aynı oda koduyla yeni bir tur başlatılır (host onaylar).
-- **Çık:** Oyuncu lobiden ayrılır; oda kapanır.
+### 5.5 Büyük Açılış ve Oyun Sonu
+Büyük Açılışta oyunculardan toplanan hikayeler bir araya getirilerek herkesin ekranına sunulur. Hikayeler arasında "Önceki" ve "Sonraki" butonlarıyla geçiş yapılır. Bütün hikayeler görüntülendikten sonra Host, dilerse "Tekrar Oyna" diyerek mevcut oyuncu grubuyla lobiyi yeniden başlatabilir veya herkes "Çık" seçeneğiyle çıkış yapabilir.
 
 ---
 
-## 6. Kullanıcı Akışı
+## 6. Teknik Altyapı Mimarisi (Mevcut Mimari)
 
-```
-[Giriş Ekranı]
-    ├── Oda Kur → Takma Ad Gir → [Lobi Ekranı - Host]
-    └── Odaya Katıl → Kod + Takma Ad Gir → [Lobi Ekranı - Oyuncu]
+Önceki GDD (game-design.md) belgesinin aksine, uygulamanın frontend kısmı bir SPA framework (Vue.js vb.) olmadan doğrudan Vanilla JS, HTML ve CSS ile daha hafif bir yapıda geliştirilmiş ve FastAPI tarafından tek parça halinde sunulacak şekilde statik olarak derlenmiştir.
 
-[Lobi Ekranı]
-    └── Host "Başlat" → [Soru Ekranı]
-
-[Soru Ekranı] (20 sn sayaç)
-    └── Cevap gönder → [Bekleme] → Sonraki soru → ... → [Büyük Açılış]
-
-[Büyük Açılış]
-    └── Tüm hikayeler → [Oyun Sonu]
-
-[Oyun Sonu]
-    ├── Tekrar Oyna → [Lobi Ekranı]
-    └── Çık → [Giriş Ekranı]
-```
-
----
-
-## 7. Hata ve Kenar Durum Yönetimi
-
-### 7.1 Bağlantı Kopması
-- Bir oyuncunun bağlantısı kesilirse sunucu **30 saniye** bekler.
-- Bu süre içinde oyuncu yeniden bağlanırsa oyun kaldığı yerden devam eder.
-- 30 saniye dolduğunda oyuncu odadan çıkarılmış sayılır; oyun kalan oyuncularla sürer (minimum 3 kişi kuralı aranmaz, oyun yarıda kesmez).
-- Bekleme süresi tüm oyunculara ekranda gösterilir: *"[Takma Ad] yeniden bağlanmayı bekliyor... 24sn"*
-
-### 7.2 Host Ayrılması
-- Host oyundan ayrılırsa (veya bağlantısı koparsa) hostluk **rastgele başka bir oyuncuya** otomatik olarak devredilir.
-- Yeni host tüm oyunculara bildirilir: *"[Takma Ad] artık host."*
-
-### 7.3 Süre Dolması
-- 20 saniye içinde cevap göndermeyen oyuncuların o tura ait cevabı **boş** olarak kaydedilir.
-- Oyuncu uyarılır: *"Süren doldu, cevabın boş geçildi."*
-
-### 7.4 Oda Geçerliliği
-- Oda, oyun tamamlanana veya tüm oyuncular ayrılana kadar aktif kalır.
-- Oyun bitişinde host "Tekrar Oyna" seçerse oda sıfırlanır, aynı kod geçerliliğini korur.
-- Host "Çık" derse oda tamamen kapatılır ve kod geçersiz olur.
-
-### 7.5 Minimum Oyuncu
-- Oyun başladıktan sonra oyuncu sayısı 2'ye düşse bile oyun **iptal edilmez**, mevcut oyuncularla tamamlanır.
-- Lobi aşamasında host, 3 kişi dolmadan oyunu başlatamaz.
-
----
-
-## 8. Teknik Altyapı Mimarisi
-
-### 8.1 Teknoloji Seçimleri (Kesinleşmiş)
-
-| Katman | Teknoloji | Gerekçe |
+| Katman | Teknoloji / Yapı | Gerekçe |
 |--------|-----------|---------|
-| Backend | FastAPI + WebSockets | Native async WebSocket desteği, yüksek performans |
-| Frontend | Vue.js 3 (Composition API) | Reaktif UI, düşük öğrenme eğrisi, Vercel uyumu |
-| State Yönetimi | Sunucu Belleği (Python dict) | Prototip için yeterli, sıfır kurulum |
-| Backend Deploy | Render.com | Ücretsiz tier, kalıcı WebSocket desteği |
-| Frontend Deploy | Vercel | Otomatik deploy, CDN, HTTPS |
+| **Backend** | API (Python 3), FastAPI, WebSockets | Native async desteği, hız, websocket kolaylığı |
+| **Frontend** | Vanilla HTML5, CSS3, JavaScript (`app.js`) | Kütüphanesiz hafif yapı, statik render |
+| **State Yönetimi**| Sunucu Belleği (Python dictionary) | Prototip / MVP için yeterli ve kurulumsuz |
+| **Sunucu Dağıtımı**| Render.com / Standalone (Tekli Container) | Vercel+Render dağınıklığını ortadan kaldırma |
 
-### 8.2 Backend — FastAPI + WebSockets
+### Proje Dizini Yapısı
 
-```
-backend/
-├── main.py           # FastAPI uygulaması, WebSocket endpoint'leri
-├── game_manager.py   # Oda ve oyun state yönetimi (Python dict)
-├── models.py         # Pydantic veri modelleri
-├── requirements.txt  # fastapi, uvicorn, websockets
-└── render.yaml       # Render.com deploy konfigürasyonu
-```
-
-Render.com'da çalıştırma komutu:
-```bash
-uvicorn main:app --host 0.0.0.0 --port $PORT
+```text
+kimkimle/
+├── main.py             # FastAPI WebSocket sunucusu, Oyun mantığı ve Statik HTML sunumu
+├── requirements.txt    # fastapi, uvicorn, websockets, pydantic vb.
+├── render.yaml         # Render.com auto-deployment ayarları
+├── game-design.md      # Eski Tasarım Belgesi
+├── game-design-2.md    # Güncel Tasarım Belgesi (Bu dosya)
+└── static/
+    ├── index.html      # Tek sayfalık arayüz (SPA benzeri modüler UI)
+    ├── style.css       # Özelleştirilmiş oyun stiline uygun CSS
+    └── app.js          # WebSocket istemcisi ve Modüler Ekran Yöneticisi
 ```
 
-### 8.3 Frontend — Vue.js 3
-
-```
-frontend/
-├── index.html
-├── package.json
-├── vite.config.js        # Vite bundler (Vue 3 önerilen)
-├── vercel.json           # Vercel deploy konfigürasyonu
-└── src/
-    ├── main.js
-    ├── App.vue
-    ├── socket.js         # WebSocket bağlantı yönetimi
-    └── components/
-        ├── HomeScreen.vue      # Giriş: Oda kur / Katıl
-        ├── LobbyScreen.vue     # Lobi: Oyuncu listesi, soru düzenleme
-        ├── QuestionScreen.vue  # Soru + 20sn sayaç
-        ├── WaitingScreen.vue   # Diğerleri yazıyor...
-        ├── RevealScreen.vue    # Büyük Açılış animasyonu
-        └── EndScreen.vue       # Tekrar Oyna / Çık
-```
-
-### 8.4 Veri ve Durum Yönetimi — Sunucu Belleği
-
-Tüm aktif oda verileri Python sözlüklerinde tutulur. Sunucu yeniden başlarsa aktif oyunlar sıfırlanır; prototip aşaması için bu kabul edilebilir. Üretime geçildiğinde Upstash Redis ile değiştirilebilir.
-
-```python
-# Sunucu belleğindeki veri yapısı örneği
-rooms = {
-    "A7B2": {
-        "host": "ali",
-        "players": ["ali", "ayse", "mehmet"],
-        "state": "lobby",          # lobby | playing | reveal | ended
-        "questions": [...],
-        "papers": { "ali": [], "ayse": [], "mehmet": [] },
-        "current_question_index": 0,
-        "answers_received": {}
-    }
-}
-```
+### Dağıtım Modeli Değişiklikleri
+- Vercel (Frontend) ve Render (Backend) şeklinde bölünmüş yapıdan vazgeçilmiş olup Frontend statik dosyaları doğrudan Backend'in `static/` klasörüne dahil edilmiştir.
+- FastAPI'nin statik dosya sunucusu özelliği kullanılarak (`@app.get("/")`, `StaticFiles(directory="static")`) tüm oyun tek bir sunucudan (örn: `uvicorn main:app`) ile ayağa kaldırılabilir hale getirilmiştir.
 
 ---
 
-## 9. WebSocket Olay Tablosu
+## 7. WebSocket Olayları Tablosu
 
-| Olay Adı | Yön | Açıklama | Örnek Payload |
-|----------|-----|----------|---------------|
-| `create_room` | Client → Server | Yeni oda oluştur | `{ nickname }` |
-| `join_room` | Client → Server | Odaya katıl | `{ room_code, nickname }` |
-| `room_updated` | Server → Client | Oyuncu listesi değişti | `{ players: [...] }` |
-| `start_game` | Client → Server | Host oyunu başlat | `{ room_code }` |
-| `game_started` | Server → Client | Oyun başladı bildirimi | `{ questions: [...] }` |
-| `submit_answer` | Client → Server | Cevap gönder | `{ room_code, answer }` |
-| `next_question` | Server → Client | Yeni soruyu göster | `{ question, question_index, total }` |
-| `timer_tick` | Server → Client | Geri sayım | `{ remaining_seconds }` |
-| `waiting` | Server → Client | Cevap bekleniyor | `{ waiting_for: [...] }` |
-| `reveal_results` | Server → Client | Hikayeleri göster | `{ stories: [...] }` |
-| `player_disconnected` | Server → Client | Oyuncu bağlantısı koptu | `{ nickname, reconnect_timeout: 30 }` |
-| `host_changed` | Server → Client | Host değişti | `{ new_host: nickname }` |
-| `game_reset` | Server → Client | Tekrar oyna başlatıldı | `{}` |
+Sistem, HTTP yerine tamamen asenkron çift yönlü iletişim (WebSocket - `ws://`/`wss://`) üzerinden tasarlanmıştır. Beklenen ve kodlanan event'ler (olaylar) aşağıdakilerdir:
 
----
-
-## 10. Güvenlik ve Kötüye Kullanım Önlemleri
-
-- Oda kodu 4 karakterli alfanumerik yapıda olup tahmin edilebilirliği düşüktür; ek olarak sunucu tarafında oluşturma sırasında çakışma kontrolü yapılır.
-- Aynı IP'den aynı odaya birden fazla bağlantı (sekme açma) engellenir.
-- Cevap uzunluğu maksimum 100 karakter ile sınırlandırılır.
-- Takma ad uzunluğu maksimum 20 karakter ile sınırlandırılır; boş bırakılamaz.
-- Sunucu tarafında rate limiting uygulanır (aynı IP'den saniyede maksimum 10 event).
+| Olay Adı (Event) | Yön | Anlamı ve İşlevi |
+|------------------|-----|------------------|
+| `create_room` | İstemci → Sunucu | Host takma adıyla birlikte odayı kurar |
+| `join_room` | İstemci → Sunucu | Oda koduna göre varolan oyun lobisine bağlanır |
+| `room_created` | Sunucu → İstemci | Kurulum başarılı, oda bilgilerini client'a iletir |
+| `room_joined`, `room_updated`| Sunucu → İstemci | Katılım onayı ve oyuncu listesindeki değişimleri iletir |
+| `add_question` / `remove_question`| İstemci → Sunucu | Lobideyken soru eklendiğini/silindiğini belirtir |
+| `questions_updated` | Sunucu → İstemci | Yeni soru listesini diğer oyunculara duyurur |
+| `start_game`, `game_started` | Çift Yönlü | Host başlat komutunu yollar, sunucu onaylar |
+| `next_question`, `submit_answer` | Çift Yönlü | Sunucu yeni soruyu gönderir, oyuncu cevabını yollar |
+| `timer_tick`, `waiting` | Sunucu → İstemci | 35sn sayacını ve "Cevaplar bekleniyor" uyarılarını günceller |
+| `reveal_results` | Sunucu → İstemci | Bütünleşik hikayeleri gösterim ekranına yansıtır |
+| `player_disconnected` | Sunucu → İstemci | Bağlantı koptu uyarısı verir, 30 saniyelik sayacı başlatır |
+| `player_reconnected` | Sunucu → İstemci | Oyuncu zamanında dönerse oyuna devam edilmesini sağlar |
+| `host_changed`, `player_left` | Sunucu → İstemci | Kopmalar sonrası host transferi veya oyuncu eksilmelerini günceller |
+| `play_again`, `game_reset` | Çift Yönlü | Aynı hostun aynı grupla tekrar turu başlatmasını ayarlar |
 
 ---
 
-## 11. Deploy Mimarisi
+## 8. Hata Durumu ve Spesifik Senaryo Yönetimi
 
-### Vercel (Frontend)
-`frontend/` klasörü Vercel'e bağlanır. Her `git push` sonrası otomatik deploy tetiklenir. `vercel.json` içinde Vue Router için fallback ayarı yapılır.
-
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
-
-### Render.com (Backend)
-`backend/` klasörü Render.com'a bağlanır. `render.yaml` ile servis tanımlanır.
-
-```yaml
-services:
-  - type: web
-    name: kimkiminle-backend
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-```
-
-> ⚠️ **Soğuk Başlatma:** Render.com ücretsiz tier'da 15 dakika işlem olmadığında sunucu uyur. İlk bağlantı 30-40 saniye sürebilir. Bu prototip aşamasında kabul edilebilir; ücretli plana geçince çözülür.
-
----
-
-## 12. Sürüm Yol Haritası
-
-### v1.0 — MVP (2–4 Hafta)
-Bu belgede tanımlanan tüm özellikler. Stack: FastAPI + Vue.js 3 + Sunucu Belleği. Deploy: Vercel + Render.com.
-
-### v2.0 — Gelecek (Kapsam Dışı)
-- Sunucu belleği → Upstash Redis geçişi (çoklu sunucu desteği)
-- Özel soru paketleri (18+, sinema temalı vb.)
-- Liderlik tablosu ve puanlama sistemi
-- Kullanıcı hesabı ve kayıt sistemi
-- Geçmiş oyunları görüntüleme
-- Sonuç ekranında emoji / beğeni tepkileri
+- **Bağlantı Kopması Süreci:** Sunucuya websocket bağlantısı kopan oyuncu 30 saniye boyunca "player_disconnected" durumunda kalır. Bu sürede (Örn: İnternet gidip gelmesi, Refresh vb.) tekrar katılırsa id üzerinden bağlantısını alır. Dönemezse tamamen dışarı alınır.
+- **Host Ayrılması (Host Devri):** Host pozisyonundaki kurucu odadan çıkarsa oyun kitlenmez, hostluk içeride kalan oyuncular arasından rastgele birine devredilerek lobinin veya oyunun sürmesi garanti altına alınır.
+- **Güvenlik / Spesifik İşlemler:**
+  - Aynı IP adresinden gelen asenkron olay bağlantı isteklerine kısıt konmuş olmakla birlikte geliştirme sürecindeki testler için saniyede 50 rate limit (olay istek limiti) esnetilerek kullanılmaktadır.
+  - Cevap içerikleri **100 karakter**, isimler **20 karakter** limitli olup spam koruması sağlanmıştır.
+  - Oyun başladıktan sonra oyuncu sayısı 2 kişiye düşse bile mevcut prototipte oyun otomatik iptal olmaz. Oyunda bir kişi kalsa dahi mevcut cycle bitene veya o da çıkana kadar çalışabilir durumdadır.
