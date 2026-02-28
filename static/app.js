@@ -434,8 +434,10 @@ function handleWaiting(data) {
 function handleRevealResults(data) {
     state.stories = data.stories;
     state.currentStoryIndex = data.reveal_index || 0;
+    state.isHost = data.host_id === state.playerId;
 
     renderStories();
+    updateStoryNavigation();
     showScreen('reveal');
 }
 
@@ -879,36 +881,48 @@ elements.buttons.leaveLobby.addEventListener('click', () => {
 });
 
 // Story Navigation
-elements.buttons.prevStory.addEventListener('click', () => {
-    if (state.isHost && state.currentStoryIndex > 0) {
-        sendEvent('change_story', { direction: 'prev' });
-    }
-});
+if (elements.buttons.prevStory) {
+    elements.buttons.prevStory.addEventListener('click', () => {
+        console.log('[DEBUG] Prev story button clicked, isHost:', state.isHost);
+        if (state.isHost && state.currentStoryIndex > 0) {
+            sendEvent('change_story', { direction: 'prev' });
+        }
+    });
+}
 
-elements.buttons.nextStory.addEventListener('click', () => {
-    if (state.isHost && state.currentStoryIndex < state.stories.length - 1) {
-        sendEvent('change_story', { direction: 'next' });
-    }
-});
+if (elements.buttons.nextStory) {
+    elements.buttons.nextStory.addEventListener('click', () => {
+        console.log('[DEBUG] Next story button clicked, isHost:', state.isHost);
+        if (state.isHost && state.currentStoryIndex < state.stories.length - 1) {
+            sendEvent('change_story', { direction: 'next' });
+        }
+    });
+}
 
 // Play Again
-elements.buttons.playAgain.addEventListener('click', () => {
-    sendEvent('play_again');
-});
+if (elements.buttons.playAgain) {
+    elements.buttons.playAgain.addEventListener('click', () => {
+        sendEvent('play_again');
+    });
+}
 
 // Exit
-elements.buttons.exit.addEventListener('click', () => {
-    sendEvent('leave_room');
-    if (state.ws) {
-        state.ws.close();
-    }
-    showScreen('entry');
-});
+if (elements.buttons.exit) {
+    elements.buttons.exit.addEventListener('click', () => {
+        sendEvent('leave_room');
+        if (state.ws) {
+            state.ws.close();
+        }
+        showScreen('entry');
+    });
+}
 
 // Room code input formatting
-elements.inputs.roomCode.addEventListener('input', (e) => {
-    e.target.value = e.target.value.toUpperCase();
-});
+if (elements.inputs.roomCode) {
+    elements.inputs.roomCode.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+    });
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
