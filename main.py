@@ -392,6 +392,8 @@ async def collect_answers(room: Room, from_timer: bool = False):
 
 async def submit_answer(room: Room, player: Player, answer: str):
     """Handle answer submission from player"""
+    print(f"[DEBUG] submit_answer: player={player.nickname}, answer={answer[:20]}...")
+    
     # Limit answer to 100 characters per GDD
     player.current_answer = answer[:MAX_ANSWER_LENGTH]
     
@@ -403,6 +405,8 @@ async def submit_answer(room: Room, player: Player, answer: str):
     # Check if all players have answered
     connected_ids = {p.id for p in room.get_connected_players()}
     answered_ids = set(room.answers[room.current_question_index].keys())
+    
+    print(f"[DEBUG] All answered check: connected={len(connected_ids)}, answered={len(answered_ids)}")
     
     if connected_ids == answered_ids:
         # All answered - move to next question

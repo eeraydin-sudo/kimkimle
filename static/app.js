@@ -229,6 +229,11 @@ function handleWebSocketMessage(data) {
             break;
         case 'error':
             showToast(data.message, 'error');
+            // If room not found, stop reconnection attempts
+            if (data.message === 'Oda bulunamadı') {
+                state.maxReconnectAttempts = 0;  // Stop reconnecting
+                showToast('Oyun sona erdi. Lütfen yeni bir oda oluşturun.', 'info');
+            }
             break;
     }
 }
@@ -342,6 +347,9 @@ function handleGameStarted(data) {
 
 function handleNextQuestion(data) {
     state.expiresAt = data.expires_at;
+    state.currentQuestionIndex = data.question_index;  // Sync with server
+    state.hasAnswered = false;  // Reset for new question
+    state.submittedAnswer = '';
 
     elements.displays.questionText.textContent = data.question;
     elements.displays.currentQuestionNum.textContent = state.currentQuestionIndex + 1;
@@ -834,12 +842,14 @@ elements.inputs.answer.addEventListener('input', () => {
 });
 
 // Submit Answer
+console.log('[DEBUG] Setting up submit answer handler');
 elements.buttons.submitAnswer.addEventListener('click', () => {
     if (state.hasAnswered) return;
 
     const answer = elements.inputs.answer.value.trim();
     if (!answer) return;
 
+    console.log('[DEBUG] Submitting answer:', answer);
     sendEvent('submit_answer', { answer });
     state.hasAnswered = true;
     state.submittedAnswer = answer;
