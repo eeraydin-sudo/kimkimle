@@ -173,8 +173,12 @@ function startReconnectCountdown() {
 }
 
 function sendEvent(event, data = {}) {
+    console.log('[DEBUG] sendEvent called - event:', event, '| ws:', state.ws ? 'exists' : 'null', '| readyState:', state.ws ? state.ws.readyState : 'N/A');
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
         state.ws.send(JSON.stringify({ event, ...data }));
+        console.log('[DEBUG] Event sent successfully');
+    } else {
+        console.log('[DEBUG] Event NOT sent - WebSocket not open');
     }
 }
 
@@ -489,10 +493,13 @@ function updatePlayerList(players) {
 
     // Update start button state (min 2 players per GDD)
     const connectedCount = players.filter(p => p.is_connected).length;
+    console.log('[DEBUG] Button state update - connectedCount:', connectedCount, '| MIN_PLAYERS:', MIN_PLAYERS);
     elements.buttons.startGame.disabled = connectedCount < MIN_PLAYERS;
+    console.log('[DEBUG] Start button disabled:', elements.buttons.startGame.disabled);
 }
 
 function updateLobbyUI() {
+    console.log('[DEBUG] updateLobbyUI called - isHost:', state.isHost);
     if (state.isHost) {
         elements.displays.hostControls.classList.remove('hidden');
         elements.displays.playerWaiting.classList.add('hidden');
@@ -815,7 +822,9 @@ elements.buttons.copyCode.addEventListener('click', () => {
 });
 
 // Start Game
+console.log('[DEBUG] Start button clicked - isHost:', state.isHost, '| connectedPlayers:', players.filter(p => p.is_connected).length);
 elements.buttons.startGame.addEventListener('click', () => {
+    console.log('[DEBUG] Start game clicked - checking conditions');
     sendEvent('start_game');
 });
 
