@@ -6,7 +6,7 @@
 
 // ============== Constants (from GDD) ==============
 
-const ANSWER_TIMER_SECONDS = 20;
+const ANSWER_TIMER_SECONDS = 30;
 const RECONNECT_TIMEOUT_SECONDS = 30;
 const MAX_PLAYERS = 8;
 const MIN_PLAYERS = 2;
@@ -338,7 +338,7 @@ function handleGameStarted(data) {
     elements.buttons.submitAnswer.disabled = false;
 
     document.getElementById('submittedOverlay').classList.remove('visible');
-    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('questionCard').style.display = 'block';
     document.getElementById('bottomBar').style.display = 'block';
 
     startLocalTimer();
@@ -359,7 +359,7 @@ function handleNextQuestion(data) {
     elements.buttons.submitAnswer.disabled = false;
 
     document.getElementById('submittedOverlay').classList.remove('visible');
-    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('questionCard').style.display = 'block';
     document.getElementById('bottomBar').style.display = 'block';
 
     elements.inputs.answer.focus();
@@ -857,7 +857,7 @@ elements.buttons.submitAnswer.addEventListener('click', () => {
     state.submittedAnswer = answer;
 
     // Show submitted overlay
-    document.getElementById('inputArea').style.display = 'none';
+    document.getElementById('questionCard').style.display = 'none';
     document.getElementById('submittedOverlay').classList.add('visible');
     elements.buttons.submitAnswer.disabled = true;
     document.getElementById('bottomBar').style.display = 'none';

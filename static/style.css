@@ -634,6 +634,47 @@ input[type="text"].dark-input::placeholder {
     animation: cardReveal 0.7s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Answer field inside question card */
+.question-card {
+    display: block;
+}
+
+.question-card .answer-field {
+    margin-top: 24px;
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid rgba(200, 132, 58, 0.25);
+    border-radius: 6px;
+    padding: 16px 18px;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--cream);
+    resize: none;
+    outline: none;
+    min-height: 72px;
+    line-height: 1.5;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    caret-color: var(--amber);
+}
+
+.question-card .answer-field::placeholder {
+    color: rgba(240, 230, 208, 0.2);
+    font-style: italic;
+}
+
+.question-card .answer-field:focus {
+    border-color: rgba(200, 132, 58, 0.6);
+    box-shadow: 0 0 0 3px rgba(200, 132, 58, 0.08), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.question-card .input-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 0 2px;
+}
+
 .story-card {
     box-shadow:
         0 2px 0 var(--card-edge-dark),
