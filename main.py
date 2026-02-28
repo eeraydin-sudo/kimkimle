@@ -478,6 +478,10 @@ def generate_stories(room: Room) -> List[Dict]:
             source_player_idx = (story_idx - q_idx) % num_players
             source_player_id = player_ids[source_player_idx]
             
+            # Skip if player is no longer in the room (disconnected)
+            if source_player_id not in player_names:
+                continue
+            
             answer = room.answers.get(q_idx, {}).get(source_player_id, "...")
             story_parts.append({
                 "question": all_questions[q_idx],
