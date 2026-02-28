@@ -290,6 +290,8 @@ async def start_game(room: Room):
     room.stories = []
     room.expires_at = time.time() + ANSWER_TIMER_SECONDS
     
+    all_questions = room.questions
+    
     await manager.broadcast({
         "event": "game_started",
         "questions": all_questions,
