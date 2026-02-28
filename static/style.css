@@ -1,5 +1,5 @@
 /* Kim Kiminle - Taboo Royale Theme */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
 
 *,
 *::before,
@@ -22,8 +22,8 @@
     --cream: #f0e6d0;
     --muted: #7a6a58;
     --danger: #c0392b;
-    --serif: 'Cormorant Garamond', Georgia, serif;
-    --sans: 'DM Sans', sans-serif;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Poppins', sans-serif;
 }
 
 html,
@@ -32,6 +32,7 @@ body {
     background: var(--bg);
     color: var(--cream);
     font-family: var(--sans);
+    font-weight: 500;
     overflow-x: hidden;
 }
 
@@ -233,8 +234,8 @@ input[type="text"].dark-input::placeholder {
     justify-content: center;
     gap: 8px;
     padding: 14px 20px;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     font-family: var(--serif);
     border: none;
     border-radius: 4px;
@@ -678,8 +679,8 @@ input[type="text"].dark-input::placeholder {
 
 .card-question {
     font-family: var(--serif);
-    font-size: clamp(32px, 9vw, 56px);
-    font-weight: 700;
+    font-size: clamp(40px, 11vw, 72px);
+    font-weight: 800;
     color: var(--ink);
     line-height: 1;
     letter-spacing: -0.01em;
