@@ -443,7 +443,8 @@ async def start_reveal(room: Room):
     await manager.broadcast({
         "event": "reveal_results",
         "stories": stories,
-        "reveal_index": room.reveal_index
+        "reveal_index": room.reveal_index,
+        "host_id": room.host_id
     }, room)
 
 
