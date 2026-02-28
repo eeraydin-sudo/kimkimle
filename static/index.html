@@ -4,233 +4,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kim Kiminle? - Parti Oyunu</title>
-    <meta name="description" content="Eğlenceli çok oyunculu parti oyunu - Arkadaşlarınla oyna!">
+    <title>Kim Kiminle?</title>
+    <meta name="description" content="Eğlenceli parti oyunu">
     <link rel="stylesheet" href="/static/style.css">
+    <!-- Google Fonts: Cormorant Garamond & DM Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
     <div id="app">
-        <!-- Giriş Ekranı (Entry Screen) -->
-        <div id="screen-entry" class="screen active">
-            <div class="container">
+        <div class="shell">
+            <!-- Giriş Ekranı (Entry Screen) -->
+            <div id="screen-entry" class="screen active">
                 <div class="logo">
-                    <h1>🎭 Kim Kiminle?</h1>
-                    <p class="tagline">Eğlenceli parti oyunu</p>
+                    <h1>Kim Kiminle?</h1>
+                    <p class="tagline">Eğlenceli Parti Oyunu</p>
                 </div>
 
-                <div class="card">
-                    <!-- Row 1: Oda Kur -->
-                    <div class="button-row">
-                        <button id="btn-create" class="btn btn-primary btn-large btn-full">
-                            🏠 Oda Kur
-                        </button>
+                <div class="card-wrapper">
+                    <div class="generic-card">
+                        <div class="button-row">
+                            <button id="btn-create" class="btn btn-primary btn-large btn-full">
+                                Oda Kur
+                            </button>
+                        </div>
+                        <div class="join-row">
+                            <input type="text" id="room-code" maxlength="4" placeholder="Oda Kodu"
+                                autocomplete="new-password">
+                            <button id="btn-join" class="btn btn-secondary">
+                                Katıl
+                            </button>
+                        </div>
                     </div>
-
-                    <!-- Row 2: Room code input + Odaya Katıl -->
-                    <div class="join-row">
-                        <input type="text" id="room-code" maxlength="4" placeholder="Oda kodu"
-                            style="text-transform: uppercase;" autocomplete="new-password">
-                        <button id="btn-join" class="btn btn-secondary">
-                            🚪 Odaya Katıl
-                        </button>
+                    <div class="info-text">
+                        <p>2-8 oyuncu • 20 sn cevap süresi</p>
                     </div>
-                </div>
-
-                <div class="info-text">
-                    <p>2-8 oyuncu • 20 saniye cevap süresi</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Oda Kur - Takma Ad Ekranı (Create Room - Nickname Screen) -->
-        <div id="screen-create-nickname" class="screen">
-            <div class="container">
+            <!-- Oda Kur - Takma Ad Ekranı -->
+            <div id="screen-create-nickname" class="screen">
                 <button class="btn-back" onclick="showScreen('entry')">← Geri</button>
-
                 <div class="logo small">
-                    <h2>🏠 Oda Kur</h2>
+                    <h2>Oda Kur</h2>
                 </div>
-
-                <div class="card">
-                    <div class="form-group">
-                        <label for="create-nickname">Takma Adın</label>
-                        <input type="text" id="create-nickname" maxlength="20" placeholder="Adını yaz..."
-                            autocomplete="new-password">
+                <div class="card-wrapper">
+                    <div class="generic-card">
+                        <div class="form-group">
+                            <label for="create-nickname">Takma Adın</label>
+                            <input type="text" id="create-nickname" maxlength="20" placeholder="Adını yaz..."
+                                autocomplete="new-password">
+                        </div>
+                        <button id="btn-create-room" class="btn btn-primary btn-large btn-full">Oluştur</button>
                     </div>
-
-                    <button id="btn-create-room" class="btn btn-primary btn-large">
-                        Oluştur
-                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Odaya Katıl - Takma Ad Ekranı (Join Room - Nickname Screen) -->
-        <div id="screen-join-nickname" class="screen">
-            <div class="container">
+            <!-- Odaya Katıl - Takma Ad Ekranı -->
+            <div id="screen-join-nickname" class="screen">
                 <button class="btn-back" onclick="showScreen('entry')">← Geri</button>
-
                 <div class="logo small">
-                    <h2>🚪 Odaya Katıl</h2>
-                    <p class="room-code-display">Oda: <span id="join-room-code-display">----</span></p>
+                    <h2>Odaya Katıl</h2>
+                    <p class="info-text" style="margin-top:0">Oda: <span id="join-room-code-display"
+                            style="color:var(--amber); font-weight:700">----</span></p>
                 </div>
-
-                <div class="card">
-                    <div class="form-group">
-                        <label for="join-nickname">Takma Adın</label>
-                        <input type="text" id="join-nickname" maxlength="20" placeholder="Adını yaz..."
-                            autocomplete="new-password">
+                <div class="card-wrapper">
+                    <div class="generic-card">
+                        <div class="form-group">
+                            <label for="join-nickname">Takma Adın</label>
+                            <input type="text" id="join-nickname" maxlength="20" placeholder="Adını yaz..."
+                                autocomplete="new-password">
+                        </div>
+                        <button id="btn-join-room" class="btn btn-primary btn-large btn-full">Katıl</button>
                     </div>
-
-                    <button id="btn-join-room" class="btn btn-primary btn-large">
-                        Katıl
-                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Lobi Ekranı (Lobby Screen) -->
-        <div id="screen-lobby" class="screen">
-            <div class="container">
-                <div class="lobby-header">
+            <!-- Lobi Ekranı -->
+            <div id="screen-lobby" class="screen">
+                <div class="lobby-header mt-20">
                     <div class="room-info">
-                        <span class="room-label">Oda Kodu:</span>
+                        <span class="room-label">Oda Kodu</span>
                         <span id="room-code-display" class="room-code">----</span>
                     </div>
-                    <button id="btn-copy-code" class="btn btn-small" title="Kodu kopyala">📋</button>
+                    <button id="btn-copy-code" class="btn btn-secondary btn-small" title="Kodu kopyala">Kopyala</button>
                 </div>
 
-                <div class="card">
-                    <h3>Oyuncular (<span id="player-count">0</span>/8)</h3>
-                    <ul id="player-list" class="player-list">
-                        <!-- Players will be listed here -->
-                    </ul>
+                <div class="card-wrapper" style="padding-top:0;">
+                    <div class="generic-card" style="padding:24px 28px;">
+                        <h3 style="font-size:1.1rem; color:var(--ink-light); margin-bottom:16px;">Oyuncular (<span
+                                id="player-count">0</span>/8)</h3>
+                        <ul id="player-list" class="player-list"></ul>
 
-                    <!-- Host Controls -->
-                    <div id="host-controls" class="host-controls hidden">
-                        <button id="btn-start-game" class="btn btn-primary btn-large" disabled>
-                            🎮 Oyunu Başlat
-                            <span class="hint">(En az 2 oyuncu)</span>
-                        </button>
+                        <div id="host-controls" class="host-controls hidden">
+                            <button id="btn-start-game" class="btn btn-primary btn-large btn-full" disabled>
+                                Oyunu Başlat
+                            </button>
+                            <span class="hint text-center">(En az 2 oyuncu)</span>
+                        </div>
+                        <div id="player-waiting" class="player-waiting">
+                            <p>Host oyunu başlatıyor...</p>
+                        </div>
                     </div>
-
-                    <!-- Player Waiting -->
-                    <div id="player-waiting" class="player-waiting">
-                        <p>⏳ Host oyunu başlatıyor...</p>
-                    </div>
-                </div>
-
-                <button id="btn-leave-lobby" class="btn btn-danger">
-                    Odadan Ayrıl
-                </button>
-            </div>
-        </div>
-
-        <!-- Soru Ekranı (Question Screen) - 35 seconds timer -->
-        <div id="screen-question" class="screen">
-            <div class="container">
-                <div class="question-header">
-                    <div class="question-progress">
-                        Soru <span id="current-question-num">1</span>/<span id="total-questions">6</span>
-                    </div>
-                    <div id="timer" class="timer">
-                        <span id="timer-value">20</span>
-                    </div>
-                </div>
-
-                <div class="card question-card">
-                    <h2 id="question-text">Kim?</h2>
-
-                    <div class="form-group">
-                        <input type="text" id="answer-input" maxlength="100" placeholder="Cevabını yaz..."
-                            autocomplete="new-password">
-                    </div>
-
-                    <button id="btn-submit-answer" class="btn btn-primary btn-large">
-                        Gönder ✓
-                    </button>
+                    <button id="btn-leave-lobby" class="btn btn-back mt-10">Odadan Ayrıl</button>
                 </div>
             </div>
-        </div>
 
-        <!-- Bekleme Ekranı (Waiting Screen) -->
-        <div id="screen-waiting" class="screen">
-            <div class="container">
-                <div class="card">
-                    <div class="spinner"></div>
-                    <h3>Cevaplar bekleniyor...</h3>
-                    <ul id="waiting-for-list" class="waiting-list">
-                        <!-- Waiting players will be listed here -->
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Büyük Açılış Ekranı (Reveal Screen) -->
-        <div id="screen-reveal" class="screen">
-            <div class="container">
-                <h2>🎭 Büyük Açılış!</h2>
-
-                <div id="stories-container" class="stories-container">
-                    <!-- Stories will be shown here -->
-                </div>
-
-                <div class="reveal-controls">
-                    <button id="btn-prev-story" class="btn btn-secondary" disabled>← Önceki</button>
-                    <span id="story-counter">1 / 1</span>
-                    <button id="btn-next-story" class="btn btn-secondary">Sonraki →</button>
-                </div>
-
-                <div id="finished-controls" class="finished-controls hidden">
-                    <button id="btn-play-again" class="btn btn-primary btn-large">
-                        🔄 Tekrar Oyna
-                    </button>
-                </div>
-
-                <button id="btn-exit" class="btn btn-secondary btn-large mt-20">
-                    🚪 Çık
-                </button>
-            </div>
-        </div>
-
-        <!-- Oyun Sonu Ekranı (Finished Screen) -->
-        <div id="screen-finished" class="screen">
-            <div class="container">
-                <div class="card finished-card">
-                    <h2>🎉 Oyun Bitti!</h2>
-                    <p>Umarım eğlenmişsinizdir!</p>
-
-                    <div id="finished-controls" class="finished-controls hidden">
-                        <button id="btn-play-again" class="btn btn-primary btn-large">
-                            🔄 Tekrar Oyna
-                        </button>
+            <!-- Soru Ekranı -->
+            <div id="screen-question" class="screen">
+                <!-- TOP BAR -->
+                <header class="topbar">
+                    <div class="topbar-left">
+                        <span class="game-title">Kim Kiminle</span>
+                        <span class="question-progress">Soru <span id="current-question-num">1</span> / <span
+                                id="total-questions">6</span></span>
                     </div>
-
-                    <button id="btn-exit" class="btn btn-secondary btn-large">
-                        🚪 Çık
-                    </button>
-                </div>
+                </header>
+                <!-- MIDDLE -->
+                <main class="middle">
+                    <!-- Timer -->
+                    <div class="timer-wrap" id="timerWrap">
+                        <svg class="timer-svg" viewBox="0 0 72 72">
+                            <circle class="timer-track" cx="36" cy="36" r="30" />
+                            <circle class="timer-arc" id="timerArc" cx="36" cy="36" r="30" />
+                        </svg>
+                        <div class="timer-num" id="timerNum">20</div>
+                    </div>
+                    <!-- Question card -->
+                    <div class="question-card" id="questionCard">
+                        <div class="card-question" id="question-text">Kim?</div>
+                        <div class="deco-line" style="margin: 14px auto 0; opacity:0.25;"></div>
+                        <div class="card-sub">Cevabını aşağıya gir.</div>
+                    </div>
+                    <!-- Input -->
+                    <div class="input-area" id="inputArea">
+                        <textarea class="answer-field" id="answer-input" maxlength="100" placeholder="Cevabını yaz..."
+                            rows="2" autocomplete="off"></textarea>
+                        <div class="input-meta">
+                            <span class="char-count" id="charCount">0 / 100</span>
+                            <span class="hint-text">Enter ile gönder</span>
+                        </div>
+                    </div>
+                    <!-- Submitted overlay -->
+                    <div class="submitted-overlay" id="submittedOverlay">
+                        <div class="check-icon">✓</div>
+                        <div class="submitted-text">Cevabın gönderildi.<br>Diğerleri bekleniyor...</div>
+                        <div class="waiting-dots"><span></span><span></span><span></span></div>
+                    </div>
+                </main>
+                <!-- BOTTOM -->
+                <footer class="bottom" id="bottomBar">
+                    <button class="submit-btn" id="btn-submit-answer">Cevabı Gönder</button>
+                </footer>
             </div>
-        </div>
 
-        <!-- Bağlantı Kopma Ekranı (Disconnected Screen) - 30 seconds reconnect -->
-        <div id="screen-disconnected" class="screen">
-            <div class="container">
-                <div class="card">
-                    <h2>⚠️ Bağlantı Koptu</h2>
-                    <p>Yeniden bağlanmaya çalışılıyor...</p>
-                    <div class="reconnect-timer">
-                        <span id="reconnect-countdown">30</span> saniye
+            <!-- Bekleme Ekranı (Ara Ekran - Fallback) -->
+            <div id="screen-waiting" class="screen">
+                <div class="card-wrapper">
+                    <div class="generic-card text-center">
+                        <div class="spinner"></div>
+                        <h3 style="color:var(--ink-light); margin-bottom:12px">Bekleniyor...</h3>
+                        <ul id="waiting-for-list" class="info-text text-center"
+                            style="list-style:none; padding:0; margin-top:0"></ul>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bildirim Toast (Toast Notification) -->
+            <!-- Büyük Açılış Ekranı (Reveal Screen) -->
+            <div id="screen-reveal" class="screen">
+                <!-- TOP BAR -->
+                <header class="topbar">
+                    <div class="topbar-left">
+                        <span class="game-title">Kim Kiminle</span>
+                        <span class="reveal-label">Büyük Açılış</span>
+                    </div>
+                    <span class="story-counter" id="story-counter">Hikaye 1 / 1</span>
+                </header>
+                <!-- MIDDLE -->
+                <main class="middle">
+                    <div id="stories-container" style="width:100%; display:flex; justify-content:center;">
+                        <!-- Story cards will be generated here by app.js -->
+                    </div>
+                </main>
+                <!-- BOTTOM -->
+                <footer class="bottom">
+                    <div class="nav-row">
+                        <button class="nav-btn prev hidden" id="btn-prev-story" disabled>← Önc</button>
+                        <div class="nav-dots" id="navDots"></div>
+                        <button class="nav-btn next hidden" id="btn-next-story">Sonra →</button>
+                    </div>
+                    <div class="end-row" id="finished-controls">
+                        <button id="btn-play-again" class="end-btn replay">Tekrar Oyna</button>
+                        <button id="btn-exit" class="end-btn quit">Odadan Çık</button>
+                    </div>
+                    <div class="host-badge">
+                        <span class="host-dot"></span>Geçişler Host kontrolündedir
+                    </div>
+                </footer>
+            </div>
+
+            <!-- Oyun Sonu Ekranı (Finished Screen) -->
+            <div id="screen-finished" class="screen">
+                <div class="card-wrapper">
+                    <div class="generic-card finished-card">
+                        <div style="font-size:3rem; margin-bottom:16px;">🎭</div>
+                        <h2>Oyun Bitti!</h2>
+                        <p>Hikayelerin hepsi okundu.</p>
+                        <div class="button-row mt-20">
+                            <button class="btn btn-secondary btn-large btn-full" onclick="showScreen('entry')">Ana
+                                Ekrana Dön</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bağlantı Kopma Ekranı -->
+            <div id="screen-disconnected" class="screen">
+                <div class="card-wrapper">
+                    <div class="generic-card text-center">
+                        <div style="font-size:2rem; margin-bottom:12px;">🕰️</div>
+                        <h2>Bağlantı Gitti</h2>
+                        <p class="info-text">Senkrondan koptun, dönmeni bekliyoruz...</p>
+                        <div class="reconnect-timer" id="reconnect-countdown">30</div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- /shell -->
+
+        <!-- Bildirim Toast -->
         <div id="toast" class="toast hidden">
             <span id="toast-message"></span>
         </div>

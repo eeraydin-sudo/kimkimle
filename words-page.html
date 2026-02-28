@@ -1,0 +1,650 @@
+< !DOCTYPE html><html lang="tr"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Kim Kiminle — Oyun Ekranı</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" /><style>*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #1a1410;
+    --bg2: #221c16;
+    --card: #f5efe4;
+    --card-edge: #e8dcc8;
+    --ink: #2a1f14;
+    --amber: #c8843a;
+    --amber-lt: #e8a855;
+    --cream: #f0e6d0;
+    --muted: #7a6a58;
+    --danger: #c0392b;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+}
+
+html,
+body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: var(--sans);
+    overflow: hidden;
+}
+
+/* ── Grain overlay ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    pointer-events: none;
+}
+
+/* ── Warm radial glow ── */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(200, 132, 58, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.shell {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 0 16px;
+    border-bottom: 1px solid rgba(200, 132, 58, 0.18);
+    animation: fadeDown 0.5s ease both;
+}
+
+.topbar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.game-title {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+}
+
+.question-progress {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    font-weight: 300;
+}
+
+/* ── Players row ── */
+.players-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.player-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1.5px solid rgba(200, 132, 58, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber-lt);
+    position: relative;
+    transition: border-color 0.3s;
+}
+
+.player-dot.answered {
+    border-color: var(--amber);
+}
+
+.player-dot.answered::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sans);
+    font-size: 10px;
+    color: var(--amber);
+    background: rgba(26, 20, 16, 0.7);
+    border-radius: 50%;
+}
+
+/* ── MIDDLE ── */
+.middle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 0;
+}
+
+/* ── Timer ── */
+.timer-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    animation: fadeIn 0.6s 0.2s ease both;
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.timer-track {
+    fill: none;
+    stroke: rgba(200, 132, 58, 0.12);
+    stroke-width: 3;
+}
+
+.timer-arc {
+    fill: none;
+    stroke: var(--amber);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 188.5;
+    /* 2π×30 */
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 2s ease;
+}
+
+.timer-arc.urgent {
+    stroke: var(--danger);
+}
+
+.timer-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+}
+
+.timer-num.urgent {
+    color: var(--danger);
+}
+
+/* ── Question card ── */
+.question-card {
+    background: var(--card);
+    border-radius: 4px;
+    padding: 44px 48px;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    box-shadow:
+        0 2px 0 var(--card-edge),
+        0 4px 0 rgba(0, 0, 0, 0.3),
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    animation: cardReveal 0.7s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* paper fold corner */
+.question-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(225deg, var(--card-edge) 50%, transparent 50%);
+    border-bottom-left-radius: 3px;
+}
+
+/* subtle lined paper */
+.question-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    background-image: repeating-linear-gradient(transparent,
+            transparent 27px,
+            rgba(42, 31, 20, 0.06) 27px,
+            rgba(42, 31, 20, 0.06) 28px);
+    pointer-events: none;
+}
+
+.card-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+    opacity: 0.8;
+}
+
+.card-question {
+    font-family: var(--serif);
+    font-size: clamp(40px, 10vw, 58px);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+
+.card-sub {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* ── INPUT AREA ── */
+.input-area {
+    width: 100%;
+    max-width: 440px;
+    animation: fadeUp 0.6s 0.35s ease both;
+}
+
+.answer-field {
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid rgba(200, 132, 58, 0.25);
+    border-radius: 6px;
+    padding: 16px 18px;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--cream);
+    resize: none;
+    outline: none;
+    min-height: 72px;
+    line-height: 1.5;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    caret-color: var(--amber);
+}
+
+.answer-field::placeholder {
+    color: rgba(240, 230, 208, 0.2);
+    font-style: italic;
+}
+
+.answer-field:focus {
+    border-color: rgba(200, 132, 58, 0.6);
+    box-shadow: 0 0 0 3px rgba(200, 132, 58, 0.08), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.input-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 0 2px;
+}
+
+.char-count {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+}
+
+.char-count.near {
+    color: var(--amber);
+}
+
+.char-count.over {
+    color: var(--danger);
+}
+
+.hint-text {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    font-family: var(--serif);
+}
+
+/* ── BOTTOM BAR ── */
+.bottom {
+    padding: 16px 0 28px;
+    animation: fadeUp 0.5s 0.4s ease both;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--amber);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3), 0 6px 20px rgba(200, 132, 58, 0.2);
+}
+
+.submit-btn:hover {
+    background: var(--amber-lt);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), 0 10px 28px rgba(200, 132, 58, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.submit-btn:disabled {
+    background: rgba(200, 132, 58, 0.3);
+    color: rgba(42, 31, 20, 0.5);
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ripple */
+.submit-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.submit-btn:hover::after {
+    opacity: 1;
+}
+
+/* ── SUBMITTED STATE ── */
+.submitted-overlay {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 0 20px;
+    text-align: center;
+}
+
+.submitted-overlay.visible {
+    display: flex;
+}
+
+.check-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--amber);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.submitted-text {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--muted);
+}
+
+.waiting-dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.waiting-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--amber);
+    animation: blink 1.4s infinite both;
+}
+
+.waiting-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.waiting-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes cardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes blink {
+
+    0%,
+    80%,
+    100% {
+        opacity: 0.2;
+        transform: scale(0.8);
+    }
+
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Decorative line ── */
+.deco-line {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    margin: 0 auto;
+    opacity: 0.4;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .shell {
+        padding: 0 16px;
+    }
+
+    .question-card {
+        padding: 32px 28px;
+    }
+}
+
+@media (min-height: 800px) {
+    .question-card {
+        padding: 52px 56px;
+    }
+}
+
+</style></head><body><div class="shell">< !-- TOP BAR --><header class="topbar"><div class="topbar-left"><span class="game-title">Kim Kiminle</span><span class="question-progress">Soru 3 / 7</span></div><div class="players-row"><div class="player-dot answered" title="Ahmet">A</div><div class="player-dot answered" title="Buse">B</div><div class="player-dot" title="Caner">C</div><div class="player-dot" title="Deniz">D</div><div class="player-dot" title="Ece">E</div></div></header>< !-- MIDDLE --><main class="middle">< !-- Timer --><div class="timer-wrap" id="timerWrap"><svg class="timer-svg" viewBox="0 0 72 72"><circle class="timer-track" cx="36" cy="36" r="30" /><circle class="timer-arc" id="timerArc" cx="36" cy="36" r="30" /></svg><div class="timer-num" id="timerNum">35</div></div>< !-- Question card --><div class="question-card" id="questionCard"><div class="card-label">Soru 3</div><div class="card-question" id="questionText">Nerede?</div><div class="deco-line" style="margin: 14px 0 0; opacity:0.25;"></div><div class="card-sub" id="cardSub">Hikayenizin geçtiği yeri yaz.</div></div>< !-- Input --><div class="input-area" id="inputArea"><textarea class="answer-field"
+id="answerField"
+maxlength="100"
+placeholder="Cevabını buraya yaz…"
+rows="2"
+autofocus></textarea><div class="input-meta"><span class="char-count" id="charCount">0 / 100</span><span class="hint-text">Enter ile gönder</span></div></div>< !-- Submitted overlay (hidden by default) --><div class="submitted-overlay" id="submittedOverlay"><div class="check-icon">✓</div><div class="submitted-text">Cevabın gönderildi.<br>Diğerleri bekleniyor…</div><div class="waiting-dots"><span></span><span></span><span></span></div></div></main>< !-- BOTTOM --><footer class="bottom" id="bottomBar"><button class="submit-btn" id="submitBtn" disabled>Cevabı Gönder</button></footer></div><script> // ── State ──
+const TOTAL_TIME=35;
+let timeLeft=TOTAL_TIME;
+let submitted=false;
+let interval=null;
+
+// ── DOM ──
+const timerArc=document.getElementById('timerArc');
+const timerNum=document.getElementById('timerNum');
+const timerWrap=document.getElementById('timerWrap');
+const answerField=document.getElementById('answerField');
+const charCount=document.getElementById('charCount');
+const submitBtn=document.getElementById('submitBtn');
+const inputArea=document.getElementById('inputArea');
+const submittedOverlay=document.getElementById('submittedOverlay');
+
+const CIRCUMFERENCE=2 * Math.PI * 30; // 188.5
+
+function setArc(seconds) {
+    const progress=seconds / TOTAL_TIME;
+    const offset=CIRCUMFERENCE * (1 - progress);
+    timerArc.style.strokeDashoffset=offset;
+
+    const urgent=seconds <=8;
+    timerArc.classList.toggle('urgent', urgent);
+    timerNum.classList.toggle('urgent', urgent);
+}
+
+function tick() {
+    if (submitted) return;
+    timeLeft--;
+    timerNum.textContent=Math.max(timeLeft, 0);
+    setArc(Math.max(timeLeft, 0));
+
+    if (timeLeft <=0) {
+        clearInterval(interval);
+        autoSubmit();
+    }
+}
+
+function autoSubmit() {
+    if (submitted) return;
+    submitted=true;
+    const val=answerField.value.trim();
+    handleSubmit(val || '-');
+}
+
+function handleSubmit(value) {
+    submitted=true;
+    clearInterval(interval);
+
+    // swap input → overlay
+    inputArea.style.display='none';
+    document.getElementById('bottomBar').style.display='none';
+    submittedOverlay.classList.add('visible');
+
+    // mark current player as answered (demo: index 2)
+    const dots=document.querySelectorAll('.player-dot');
+    if (dots[2]) dots[2].classList.add('answered');
+
+    console.log('Submitted:', value);
+    // → ws.send({ type: 'submit_answer', answer: value });
+}
+
+// ── Char counter ──
+answerField.addEventListener('input', ()=> {
+        const len=answerField.value.length;
+
+        charCount.textContent=`$ {
+            len
+        }
+
+        / 100`;
+        charCount.className='char-count' + (len >=90 ? ' near' : '') + (len >=100 ? ' over' : '');
+        submitBtn.disabled=len===0 || submitted;
+    });
+
+// ── Submit on button ──
+submitBtn.addEventListener('click', ()=> {
+        if (submitted || answerField.value.trim().length===0) return;
+        handleSubmit(answerField.value.trim());
+    });
+
+// ── Submit on Enter (Shift+Enter = newline) ──
+answerField.addEventListener('keydown', (e)=> {
+        if (e.key==='Enter' && !e.shiftKey) {
+            e.preventDefault();
+
+            if ( !submitted && answerField.value.trim().length > 0) {
+                handleSubmit(answerField.value.trim());
+            }
+        }
+    });
+
+// ── Start timer ──
+setArc(TOTAL_TIME);
+interval=setInterval(tick, 1000);
+</script></body></html>

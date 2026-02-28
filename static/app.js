@@ -78,13 +78,15 @@ const elements = {
         questionText: document.getElementById('question-text'),
         currentQuestionNum: document.getElementById('current-question-num'),
         totalQuestions: document.getElementById('total-questions'),
-        timerValue: document.getElementById('timer-value'),
-        timer: document.getElementById('timer'),
+        timerNum: document.getElementById('timerNum'),
+        timerArc: document.getElementById('timerArc'),
         waitingForList: document.getElementById('waiting-for-list'),
         storiesContainer: document.getElementById('stories-container'),
         storyCounter: document.getElementById('story-counter'),
         finishedControls: document.getElementById('finished-controls'),
-        reconnectCountdown: document.getElementById('reconnect-countdown')
+        reconnectCountdown: document.getElementById('reconnect-countdown'),
+        charCount: document.getElementById('charCount'),
+        navDots: document.getElementById('navDots')
     },
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toast-message')
@@ -306,6 +308,12 @@ function handleRoomUpdated(data) {
     }
 }
 
+function updateCharCount() {
+    const len = elements.inputs.answer.value.length;
+    elements.displays.charCount.textContent = `${len} / 100`;
+    elements.displays.charCount.className = `char-count ${len > 80 ? (len >= 100 ? 'over' : 'near') : ''}`;
+}
+
 function handleGameStarted(data) {
     state.questions = data.questions;
     state.totalQuestions = data.questions.length;
@@ -316,8 +324,13 @@ function handleGameStarted(data) {
 
     elements.displays.totalQuestions.textContent = state.totalQuestions;
     elements.inputs.answer.disabled = false;
-    elements.inputs.answer.classList.remove('submitted');
+    elements.inputs.answer.value = '';
+    updateCharCount();
     elements.buttons.submitAnswer.disabled = false;
+
+    document.getElementById('submittedOverlay').classList.remove('visible');
+    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('bottomBar').style.display = 'block';
 
     startLocalTimer();
     showScreen('question');
@@ -330,8 +343,13 @@ function handleNextQuestion(data) {
     elements.displays.currentQuestionNum.textContent = state.currentQuestionIndex + 1;
     elements.inputs.answer.value = '';
     elements.inputs.answer.disabled = false;
-    elements.inputs.answer.classList.remove('submitted');
+    updateCharCount();
     elements.buttons.submitAnswer.disabled = false;
+
+    document.getElementById('submittedOverlay').classList.remove('visible');
+    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('bottomBar').style.display = 'block';
+
     elements.inputs.answer.focus();
 
     startLocalTimer();
@@ -365,14 +383,19 @@ function handleTimerTick(data) {
 }
 
 function updateTimerDisplay() {
-    elements.displays.timerValue.textContent = state.timer;
+    elements.displays.timerNum.textContent = state.timer;
 
-    elements.displays.timer.classList.remove('warning', 'danger');
+    const totalCircumference = 188.5;
+    const percentage = state.timer / ANSWER_TIMER_SECONDS;
+    const offset = totalCircumference - (percentage * totalCircumference);
+    elements.displays.timerArc.style.strokeDashoffset = offset;
+
+    elements.displays.timerArc.classList.remove('urgent');
+    elements.displays.timerNum.classList.remove('urgent');
 
     if (state.timer <= 5) {
-        elements.displays.timer.classList.add('danger');
-    } else if (state.timer <= 10) {
-        elements.displays.timer.classList.add('warning');
+        elements.displays.timerArc.classList.add('urgent');
+        elements.displays.timerNum.classList.add('urgent');
     }
 }
 
@@ -483,73 +506,92 @@ function updateLobbyUI() {
 
 function renderStories() {
     elements.displays.storiesContainer.innerHTML = '';
+    elements.displays.navDots.innerHTML = ''; // Clear nav dots
+
+    const questionsMap = [
+        "Kim?", "Kiminle?", "Nerede?", "Ne zaman?", "Ne Yapıyor?", "Kim Görmüş?", "Ne Demiş?"
+    ];
 
     state.stories.forEach((story, index) => {
-        const storyDiv = document.createElement('div');
-        storyDiv.className = `story ${index === state.currentStoryIndex ? '' : 'hidden'}`;
-        storyDiv.dataset.index = index;
+        // Create story card
+        const storyCard = document.createElement('div');
+        storyCard.className = `story-card ${index === state.currentStoryIndex ? '' : 'hidden'}`;
+        storyCard.dataset.index = index;
 
-        let partsHtml = '';
+        // Ornament & Number
+        const headerHtml = `
+            <div class="card-ornament">
+                <div class="ornament-line"></div>
+                <div class="ornament-diamond"></div>
+                <div class="ornament-line right"></div>
+            </div>
+            <div class="story-num text-center">HİKAYE ${index + 1}</div>
+        `;
 
-        // Expected Default Order:
-        // 0: Kim?
-        // 1: Kiminle?
-        // 2: Nerede?
-        // 3: Ne zaman?
-        // 4: Ne Yapıyor?
-        // 5: Kim Görmüş?
-        // 6: Ne Demiş?
+        let storyBodyHtml = '<div class="story-body">';
+        let fullStoryText = '';
 
         story.parts.forEach((part, partIndex) => {
             const answer = part.answer;
-            let formattedText = answer;
+            const q = questionsMap[partIndex] || `Soru ${partIndex + 1}`;
+
+            // For full story, format words inline
             let suffix = '';
+            if (partIndex === 0) suffix = ', ';
+            else if (partIndex === 1) suffix = ' ile, ';
+            else if (partIndex === 2) suffix = ', ';
+            else if (partIndex === 3) suffix = ', ';
+            else if (partIndex === 4) suffix = '. ';
+            else if (partIndex === 5) suffix = ' gördü. ';
+            else if (partIndex === 6) suffix = ' dedi.';
 
-            // Format logic based on question
-            if (partIndex === 0) {
-                // Kim -> (kim),
-                suffix = ', ';
-            } else if (partIndex === 1) {
-                // Kiminle -> (kiminle) ile,
-                suffix = ' ile, ';
-            } else if (partIndex === 2) {
-                // Nerede -> (nerede),
-                suffix = ', ';
-            } else if (partIndex === 3) {
-                // Ne zaman -> (ne zaman),
-                suffix = ', ';
-            } else if (partIndex === 4) {
-                // Ne yapıyor -> (ne yapıyor).
-                suffix = '. ';
-            } else if (partIndex === 5) {
-                // Kim görmüş -> (kim görmüş) gördü.
-                suffix = ' gördü. ';
-            } else if (partIndex === 6) {
-                // Ne demiş -> (ne demiş) dedi.
-                suffix = ' dedi.';
-            }
+            fullStoryText += ` <strong>${answer}</strong>${suffix}`;
 
-            partsHtml += `
-                <div class="story-part" style="animation-delay: ${partIndex * 0.5}s">
-                    <span class="highlight">${formattedText}${suffix}</span>
+            storyBodyHtml += `
+                <div class="story-line" style="animation-delay: ${0.2 + (partIndex * 0.1)}s">
+                    <div class="line-question">${q}</div>
+                    <div class="line-answer" style="filter: blur(4px); transition: filter 0.8s ease; animation: removeBlur 0.8s ${0.3 + (partIndex * 0.1)}s forwards;">${answer}</div>
                 </div>
             `;
         });
+        storyBodyHtml += '</div>';
 
-        storyDiv.innerHTML = `
-            <div class="story-header">Hikaye ${index + 1}</div>
-            <div class="story-text">${partsHtml}</div>
-        `;
+        const fullStoryHtml = `<div class="story-full">${fullStoryText.trim()}</div>`;
 
-        elements.displays.storiesContainer.appendChild(storyDiv);
+        storyCard.innerHTML = headerHtml + storyBodyHtml + fullStoryHtml;
+        elements.displays.storiesContainer.appendChild(storyCard);
+
+        // Create matching dot
+        const dot = document.createElement('div');
+        dot.className = `nav-dot ${index === state.currentStoryIndex ? 'active' : ''}`;
+        dot.dataset.index = index;
+        if (state.isHost) {
+            dot.addEventListener('click', () => {
+                sendEvent('change_story', { new_index: index });
+            });
+        }
+        elements.displays.navDots.appendChild(dot);
     });
+
+    // Add keyframes dynamically if not exists
+    if (!document.getElementById('removeBlurStyles')) {
+        const style = document.createElement('style');
+        style.id = 'removeBlurStyles';
+        style.innerHTML = `@keyframes removeBlur { to { filter: blur(0); } }`;
+        document.head.appendChild(style);
+    }
 
     updateStoryNavigation();
 }
 
 function updateStoryNavigation() {
     const total = state.stories.length;
-    elements.displays.storyCounter.textContent = `${state.currentStoryIndex + 1} / ${total}`;
+    elements.displays.storyCounter.textContent = `Hikaye ${state.currentStoryIndex + 1} / ${total}`;
+
+    // Update dots
+    Array.from(elements.displays.navDots.children).forEach((dot, index) => {
+        dot.classList.toggle('active', index === state.currentStoryIndex);
+    });
 
     // Only host can see and use navigation buttons
     if (state.isHost) {
@@ -557,13 +599,19 @@ function updateStoryNavigation() {
         elements.buttons.nextStory.classList.remove('hidden');
         elements.buttons.prevStory.disabled = state.currentStoryIndex === 0;
         elements.buttons.nextStory.disabled = state.currentStoryIndex >= total - 1;
+
+        if (state.currentStoryIndex === total - 1) {
+            elements.displays.finishedControls.classList.add('visible');
+        } else {
+            elements.displays.finishedControls.classList.remove('visible');
+        }
     } else {
         elements.buttons.prevStory.classList.add('hidden');
         elements.buttons.nextStory.classList.add('hidden');
     }
 
     // Show/hide stories
-    elements.displays.storiesContainer.querySelectorAll('.story').forEach((story, index) => {
+    elements.displays.storiesContainer.querySelectorAll('.story-card').forEach((story, index) => {
         story.classList.toggle('hidden', index !== state.currentStoryIndex);
     });
 }
@@ -771,6 +819,11 @@ elements.buttons.startGame.addEventListener('click', () => {
     sendEvent('start_game');
 });
 
+// Input char limit
+elements.inputs.answer.addEventListener('input', () => {
+    updateCharCount();
+});
+
 // Submit Answer
 elements.buttons.submitAnswer.addEventListener('click', () => {
     if (state.hasAnswered) return;
@@ -782,19 +835,20 @@ elements.buttons.submitAnswer.addEventListener('click', () => {
     state.hasAnswered = true;
     state.submittedAnswer = answer;
 
-    // Show submitted answer in italic, disable input
-    elements.inputs.answer.value = answer;
-    elements.inputs.answer.disabled = true;
-    elements.inputs.answer.classList.add('submitted');
+    // Show submitted overlay
+    document.getElementById('inputArea').style.display = 'none';
+    document.getElementById('submittedOverlay').classList.add('visible');
     elements.buttons.submitAnswer.disabled = true;
-
-    showToast('Cevabınız gönderildi!', 'success');
+    document.getElementById('bottomBar').style.display = 'none';
 });
 
-// Enter key for answer submission
-elements.inputs.answer.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !state.hasAnswered) {
-        elements.buttons.submitAnswer.click();
+// Enter key for answer submission (use keydown instead of keypress to catch Enter reliably in textarea)
+elements.inputs.answer.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!state.hasAnswered) {
+            elements.buttons.submitAnswer.click();
+        }
     }
 });
 
