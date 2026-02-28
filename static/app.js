@@ -822,7 +822,7 @@ elements.buttons.copyCode.addEventListener('click', () => {
 });
 
 // Start Game
-console.log('[DEBUG] Start button clicked - isHost:', state.isHost, '| connectedPlayers:', players.filter(p => p.is_connected).length);
+console.log('[DEBUG] Start button clicked - isHost:', state.isHost, '| connectedPlayers:', state.players ? state.players.filter(p => p.is_connected).length : 0);
 elements.buttons.startGame.addEventListener('click', () => {
     console.log('[DEBUG] Start game clicked - checking conditions');
     sendEvent('start_game');
