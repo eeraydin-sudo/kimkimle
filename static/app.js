@@ -880,20 +880,31 @@ elements.buttons.leaveLobby.addEventListener('click', () => {
     showScreen('entry');
 });
 
-// Story Navigation
+// Story Navigation - Prev Button
 if (elements.buttons.prevStory) {
     elements.buttons.prevStory.addEventListener('click', () => {
-        console.log('[DEBUG] Prev story button clicked, isHost:', state.isHost);
-        if (state.isHost && state.currentStoryIndex > 0) {
+        console.log('[DEBUG] Prev story button clicked');
+        console.log('[DEBUG] state.isHost:', state.isHost);
+        console.log('[DEBUG] state.currentStoryIndex:', state.currentStoryIndex);
+        console.log('[DEBUG] state.stories.length:', state.stories.length);
+
+        // Remove the isHost check - let the server validate
+        if (state.currentStoryIndex > 0) {
             sendEvent('change_story', { direction: 'prev' });
         }
     });
 }
 
+// Story Navigation - Next Button
 if (elements.buttons.nextStory) {
     elements.buttons.nextStory.addEventListener('click', () => {
-        console.log('[DEBUG] Next story button clicked, isHost:', state.isHost);
-        if (state.isHost && state.currentStoryIndex < state.stories.length - 1) {
+        console.log('[DEBUG] Next story button clicked');
+        console.log('[DEBUG] state.isHost:', state.isHost);
+        console.log('[DEBUG] state.currentStoryIndex:', state.currentStoryIndex);
+        console.log('[DEBUG] state.stories.length:', state.stories.length);
+
+        // Remove the isHost check - let the server validate
+        if (state.stories.length > 0 && state.currentStoryIndex < state.stories.length - 1) {
             sendEvent('change_story', { direction: 'next' });
         }
     });
