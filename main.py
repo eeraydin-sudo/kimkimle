@@ -759,17 +759,20 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                     await submit_answer(room, player, answer)
             
             elif event == "change_story":
+                print(f"[DEBUG] change_story event: player={player_id}, is_host={player.is_host}, state={room.state}")
                 if player.is_host and room.state == GameState.REVEAL:
                     direction = data.get("direction")
+                    print(f"[DEBUG] direction={direction}, current_index={room.reveal_index}, total={len(room.stories)}")
                     if direction == "next" and room.reveal_index < len(room.stories) - 1:
                         room.reveal_index += 1
                     elif direction == "prev" and room.reveal_index > 0:
                         room.reveal_index -= 1
                     
+                    print(f"[DEBUG] Broadcasting story_changed: new_index={room.reveal_index}")
                     await manager.broadcast({
                         "event": "story_changed",
                         "current_story_index": room.reveal_index
-                    })
+                    }, room)
             
 
             
