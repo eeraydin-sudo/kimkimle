@@ -336,8 +336,9 @@ function handleGameStarted(data) {
     state.currentQuestionIndex = 0;
     state.hasAnswered = false;
     state.submittedAnswer = '';
-    state.expiresAt = data.expires_at || (Date.now() / 1000 + ANSWER_TIMER_SECONDS);
-    console.log('[DEBUG] expiresAt set to:', state.expiresAt, '| current time:', Date.now() / 1000);
+    // Use local timer - don't depend on server time which has latency
+    state.timer = ANSWER_TIMER_SECONDS;
+    console.log('[DEBUG] Timer initialized to:', state.timer);
 
     elements.displays.totalQuestions.textContent = state.totalQuestions;
     elements.inputs.answer.disabled = false;
@@ -354,9 +355,14 @@ function handleGameStarted(data) {
 }
 
 function handleNextQuestion(data) {
-    console.log('[DEBUG] handleNextQuestion received, expires_at:', data.expires_at);
-    state.expiresAt = data.expires_at;
-    console.log('[DEBUG] state.expiresAt set to:', state.expiresAt, '| current time:', Date.now() / 1000);
+    console.log('[DEBUG] handleNextQuestion received, timer_seconds:', data.timer_seconds);
+    // Use local timer tracking instead of server expires_at to avoid latency issues
+    state.timer = data.timer_seconds || ANSWER_TIMER_SECONDS;
+    state.currentQuestionIndex = data.question_index;  // Sync with server
+    state.hasAnswered = false;  // Reset for new question
+    state.submittedAnswer = '';
+
+    console.log('[DEBUG] Timer set to:', state.timer);
     state.currentQuestionIndex = data.question_index;  // Sync with server
     state.hasAnswered = false;  // Reset for new question
     state.submittedAnswer = '';
@@ -384,13 +390,12 @@ function startLocalTimer() {
     }
 
     const update = () => {
-        const now = Date.now();
-        const remaining = Math.max(0, Math.floor((state.expiresAt * 1000 - now) / 1000));
-        state.timer = remaining;
+        // Count down from the timer value instead of calculating from expires_at
+        state.timer = Math.max(0, state.timer - 1);
         updateTimerDisplay();
-        console.log('[DEBUG] Timer tick:', remaining);
+        console.log('[DEBUG] Timer tick:', state.timer);
 
-        if (remaining <= 0) {
+        if (state.timer <= 0) {
             clearInterval(state.timerInterval);
             state.timerInterval = null;
         }
