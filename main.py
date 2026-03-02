@@ -326,7 +326,7 @@ async def start_game(room: Room):
     await manager.broadcast({
         "event": "game_started",
         "questions": all_questions,
-        "expires_at": room.expires_at
+        "timer_seconds": ANSWER_TIMER_SECONDS
     }, room)
     
     await send_next_question(room)
@@ -353,7 +353,7 @@ async def send_next_question(room: Room):
         "question": all_questions[room.current_question_index],
         "question_index": room.current_question_index,
         "total": len(all_questions),
-        "expires_at": room.expires_at
+        "timer_seconds": ANSWER_TIMER_SECONDS  # Send the timer duration directly
     }
     print(f"Sending next_question: {question_data}")
     
