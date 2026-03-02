@@ -346,6 +346,7 @@ async def send_next_question(room: Room):
     room.timer_remaining = ANSWER_TIMER_SECONDS
     
     room.expires_at = time.time() + ANSWER_TIMER_SECONDS
+    print(f"[DEBUG] send_next_question: expires_at set to {room.expires_at} (current time: {time.time()})")
     
     question_data = {
         "event": "next_question",
