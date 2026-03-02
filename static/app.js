@@ -330,12 +330,14 @@ function updateCharCount() {
 }
 
 function handleGameStarted(data) {
+    console.log('[DEBUG] handleGameStarted received:', data);
     state.questions = data.questions;
     state.totalQuestions = data.questions.length;
     state.currentQuestionIndex = 0;
     state.hasAnswered = false;
     state.submittedAnswer = '';
     state.expiresAt = data.expires_at || (Date.now() / 1000 + ANSWER_TIMER_SECONDS);
+    console.log('[DEBUG] expiresAt set to:', state.expiresAt, '| current time:', Date.now() / 1000);
 
     elements.displays.totalQuestions.textContent = state.totalQuestions;
     elements.inputs.answer.disabled = false;
@@ -352,7 +354,9 @@ function handleGameStarted(data) {
 }
 
 function handleNextQuestion(data) {
+    console.log('[DEBUG] handleNextQuestion received, expires_at:', data.expires_at);
     state.expiresAt = data.expires_at;
+    console.log('[DEBUG] state.expiresAt set to:', state.expiresAt, '| current time:', Date.now() / 1000);
     state.currentQuestionIndex = data.question_index;  // Sync with server
     state.hasAnswered = false;  // Reset for new question
     state.submittedAnswer = '';
