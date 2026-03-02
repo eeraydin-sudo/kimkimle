@@ -384,6 +384,7 @@ function startLocalTimer() {
         const remaining = Math.max(0, Math.floor((state.expiresAt * 1000 - now) / 1000));
         state.timer = remaining;
         updateTimerDisplay();
+        console.log('[DEBUG] Timer tick:', remaining);
 
         if (remaining <= 0) {
             clearInterval(state.timerInterval);
