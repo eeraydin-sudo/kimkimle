@@ -61,6 +61,7 @@ class Player:
     is_connected: bool = True
     reconnect_timeout: float = 0
     current_answer: str = ""
+    client_ip: str = ""
 
 
 @dataclass
@@ -139,7 +140,8 @@ class GameManager:
             id=host_id,
             nickname=self._sanitize_nickname(host_nickname),
             websocket=websocket,
-            is_host=True
+            is_host=True,
+            client_ip=client_ip
         )
         
         room = Room(
@@ -170,7 +172,8 @@ class GameManager:
             id=player_id,
             nickname=self._sanitize_nickname(nickname),
             websocket=websocket,
-            is_host=False
+            is_host=False,
+            client_ip=client_ip
         )
         
         room.players[player_id] = player
@@ -186,19 +189,40 @@ class GameManager:
         room_code = self.player_rooms[player_id]
         room = self.rooms.get(room_code)
         
+        print(f"[DEBUG] leave_room called: player_id={player_id}, room_code={room_code}, room_exists={room is not None}")
+        
         if room and player_id in room.players:
             player = room.players[player_id]
             
             # Handle host transfer
             if player.is_host:
+                print(f"[DEBUG] Host leaving, transferring host")
                 self._transfer_host(room)
+            
+            # Cancel timer task if running before deleting room
+            if room.timer_task:
+                print(f"[DEBUG] Cancelling timer task for room {room_code} before cleanup")
+                room.timer_task.cancel()
+                room.timer_task = None
             
             # Delete from player_rooms first, then remove from room.players completely
             del self.player_rooms[player_id]
             del room.players[player_id]
             
+            # Clean up IP connection tracking using stored IP
+            if player.client_ip:
+                self._remove_ip_connection(player.client_ip, player_id)
+            
             # Check if room is empty
-            if not room.get_connected_players():
+            connected_players = room.get_connected_players()
+            print(f"[DEBUG] Room {room_code} players after removal: {len(room.players)}, connected: {len(connected_players)}")
+            if not connected_players:
+                print(f"[DEBUG] Room {room_code} is empty, deleting room")
+                # Double check timer is cancelled
+                if room.timer_task:
+                    print(f"[DEBUG] WARNING: Timer task still exists, cancelling again")
+                    room.timer_task.cancel()
+                    room.timer_task = None
                 del self.rooms[room_code]
         else:
             # Player not in room, just clean up player_rooms
@@ -252,6 +276,13 @@ class GameManager:
         if ip not in self.ip_connections:
             self.ip_connections[ip] = set()
         self.ip_connections[ip].add(player_id)
+    
+    def _remove_ip_connection(self, ip: str, player_id: str):
+        """Remove player from IP tracking when they disconnect"""
+        if ip in self.ip_connections:
+            self.ip_connections[ip].discard(player_id)
+            if not self.ip_connections[ip]:
+                del self.ip_connections[ip]
 
 
 game_manager = GameManager()
@@ -504,13 +535,25 @@ def generate_stories(room: Room) -> List[Dict]:
 
 async def reset_game(room: Room):
     """Reset game for 'Play Again' - same room code"""
+    print(f"[DEBUG] reset_game called for room {room.code}, current state: {room.state}")
+    
+    # Cancel any running timer first
+    if room.timer_task:
+        print(f"[DEBUG] Cancelling existing timer task during reset")
+        room.timer_task.cancel()
+        room.timer_task = None
+    
     room.state = GameState.LOBBY
     room.current_question_index = 0
+    room.timer_remaining = ANSWER_TIMER_SECONDS
     room.answers = {}
     room.stories = []
+    room.reveal_index = 0
     
     for player in room.players.values():
         player.current_answer = ""
+    
+    print(f"[DEBUG] Game reset complete for room {room.code}")
     
     await manager.broadcast({
         "event": "game_reset",
@@ -723,7 +766,7 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
                     elif direction == "prev" and room.reveal_index > 0:
                         room.reveal_index -= 1
                     
-                    await manager.broadcast_to_room(room.code, {
+                    await manager.broadcast({
                         "event": "story_changed",
                         "current_story_index": room.reveal_index
                     })
@@ -782,6 +825,10 @@ async def handle_disconnect_timeout(room: Room, player_id: str):
         
         if player_id in game_manager.player_rooms:
             del game_manager.player_rooms[player_id]
+        
+        # Clean up IP connection tracking
+        if player.client_ip:
+            game_manager._remove_ip_connection(player.client_ip, player_id)
         
         await manager.broadcast({
             "event": "player_left",

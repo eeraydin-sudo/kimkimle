@@ -92,6 +92,12 @@ const elements = {
     toastMessage: document.getElementById('toast-message')
 };
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // ============== Screen Management ==============
 
 function showScreen(screenName) {
@@ -417,7 +423,7 @@ function handleWaiting(data) {
     if (data.waiting_for.length > 0) {
         // Still waiting for some players - don't switch screen
         // Just show a status message in the question screen
-        const waitingNames = data.waiting_for.join(', ');
+        const waitingNames = data.waiting_for.map(n => escapeHtml(n)).join(', ');  // ESCAPED
         showToast(`Bekleniyor: ${waitingNames}`, 'info');
         return;
     }
@@ -447,20 +453,24 @@ function handleStoryChanged(data) {
 }
 
 function handlePlayerDisconnected(data) {
-    showToast(`${data.nickname} bağlantısı koptu. Yeniden bağlanması bekleniyor... (${data.reconnect_timeout}sn)`, 'warning');
+    const safeNickname = escapeHtml(data.nickname);  // ESCAPED
+    showToast(`${safeNickname} bağlantısı koptu. Yeniden bağlanması bekleniyor... (${data.reconnect_timeout}sn)`, 'warning');
 }
 
 function handlePlayerReconnected(data) {
-    showToast(`${data.nickname} yeniden bağlandı!`, 'success');
+    const safeNickname = escapeHtml(data.nickname);  // ESCAPED
+    showToast(`${safeNickname} yeniden bağlandı!`, 'success');
 }
 
 function handlePlayerLeft(data) {
     updatePlayerList(data.players);
-    showToast(`${data.nickname} odadan ayrıldı.`, 'info');
+    const safeNickname = escapeHtml(data.nickname);  // ESCAPED
+    showToast(`${safeNickname} odadan ayrıldı.`, 'info');
 }
 
 function handleHostChanged(data) {
-    showToast(`${data.new_host} artık host!`, 'info');
+    const safeNewHost = escapeHtml(data.new_host);  // ESCAPED
+    showToast(`${safeNewHost} artık host!`, 'info');
 
     if (data.new_host === state.nickname) {
         state.isHost = true;
@@ -490,10 +500,11 @@ function updatePlayerList(players) {
         li.className = player.is_connected ? '' : 'disconnected';
 
         const initial = player.nickname.charAt(0).toUpperCase();
+        const safeNickname = escapeHtml(player.nickname);  // ESCAPED for XSS
 
         li.innerHTML = `
             <div class="player-avatar">${initial}</div>
-            <span class="player-name">${player.nickname}</span>
+            <span class="player-name">${safeNickname}</span>
             ${player.is_host ? '<span class="player-badge">Host</span>' : ''}
             ${!player.is_connected ? '<span class="player-badge reconnecting">Bağlanıyor...</span>' : ''}
         `;
@@ -549,7 +560,7 @@ function renderStories() {
         let fullStoryText = '';
 
         story.parts.forEach((part, partIndex) => {
-            const answer = part.answer;
+            const answer = escapeHtml(part.answer);  // ESCAPED for XSS
             const q = questionsMap[partIndex] || `Soru ${partIndex + 1}`;
 
             // For full story, format words inline
@@ -643,10 +654,12 @@ elements.buttons.create.addEventListener('click', () => {
 
 // Show Join Nickname Screen (after validating room code)
 elements.buttons.join.addEventListener('click', () => {
-    const roomCode = elements.inputs.roomCode.value.trim().toUpperCase();
+    let roomCode = elements.inputs.roomCode.value.trim().toUpperCase();
 
-    if (!roomCode || roomCode.length !== 4) {
-        showToast('Geçerli bir oda kodu gir', 'error');
+    // Validate: must be exactly 4 alphanumeric characters
+    const roomCodeRegex = /^[A-Z0-9]{4}$/;
+    if (!roomCodeRegex.test(roomCode)) {
+        showToast('Oda kodu 4 karakter olmalı (harf veya rakam)', 'error');
         elements.inputs.roomCode.focus();
         return;
     }
